@@ -1,0 +1,10 @@
+{
+  "packageManager": "yarn@4.4.0",
+  "name": "osc.link",
+  "workspaces": [
+    "packages/*"
+  ],
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

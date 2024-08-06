@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "target": "es6",
+    "module": "esnext",
+    "jsx": "react",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "strict": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "typeRoots": [
+      "node_modules/@types",
+      "src/types"
+    ],
+    "paths":{
+      "osc": ["./src/types/osc"]
+    }
+  },
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "*.stories.tsx",
+    "*.test.tsx",
+    "src/types/**",
+  ]
+}
