@@ -21,7 +21,7 @@ jobs:
           node-version-file: 'package.json'
 
       - name: Install Dependencies and Build
-        run: yarn install --inline-builds
+        run: npm install --workspaces --include-workspace-root
 
       - name: NPM Build Script
         run: npm run build

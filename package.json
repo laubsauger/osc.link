@@ -1,15 +1,16 @@
 {
   "name": "osc.link",
+  "private": true,
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace osc.link-server dev\" \"yarn workspace osc.link-web start\" \"yarn workspace osc.link-electron dev\"",
-    "start-server": "yarn workspace osc.link-server dev",
-    "start-web": "yarn workspace osc.link-web start",
-    "start-electron": "yarn workspace osc.link-electron dev",
-    "test": "yarn workspaces foreach -A run test",
-    "build": "yarn workspace osc.link-electron build"
+    "dev": "concurrently \"npm run dev --workspace osc.link-server\" \"npm start --workspace osc.link-web\" \"npm run dev --workspace osc.link-electron\"",
+    "start-server": "npm run dev --workspace osc.link-server",
+    "start-web": "npm start --workspace osc.link-web",
+    "start-electron": "npm run dev --workspace osc.link-electron",
+    "test": "npm run test --workspaces",
+    "build": "npm run build --workspace osc.link-electron"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
