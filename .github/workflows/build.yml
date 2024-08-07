@@ -21,7 +21,7 @@ jobs:
           node-version-file: 'package.json'
 
       - name: Install Dependencies
-        run: npm ci --no-audit --workspace osc.link-electron
+        run: npm ci --no-audit
 
       - name: Build Electron
         run: npm run build
