@@ -21,7 +21,7 @@ jobs:
           node-version-file: 'package.json'
 
       - name: Install Dependencies and Build
-        run: yarn install --frozen-lockfile
+        run: yarn install --immutable
         working-directory: packages/electron
 
       - name: NPM Build Script
