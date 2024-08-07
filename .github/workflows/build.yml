@@ -21,13 +21,10 @@ jobs:
           node-version-file: 'package.json'
 
       - name: Install Dependencies and Build
-        run: yarn install --immutable --immutable-cache
-        env:
-          YARN_ENABLE_IMMUTABLE_INSTALLS: false
+        run: yarn install --enableInlineBuilds
 
       - name: NPM Build Script
         run: npm run build
-        working-directory: packages/electron
 
       - name: Release Electron app
         uses: samuelmeuli/action-electron-builder@v1
