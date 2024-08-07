@@ -16,9 +16,10 @@ jobs:
           path: packages/electron
 
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.15.0
+          node-version-file: 'package.json'
+
 
       - name: Build/release Electron app
         uses: samuelmeuli/action-electron-builder@v1
