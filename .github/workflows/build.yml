@@ -20,10 +20,8 @@ jobs:
         with:
           node-version-file: 'package.json'
 
-      - name: Install Dependencies and Build
-        run: npm install --workspace osc.link-electron
-
-      - name: NPM Build Script
+      - name: Install Dependencies and Build Electron
+        run: npm ci --no-audit --workspace osc.link-electron
         run: npm run build
 
       - name: Release Electron app
