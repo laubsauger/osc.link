@@ -22,6 +22,8 @@ jobs:
 
       - name: Install Dependencies and Build
         run: yarn install --immutable --immutable-cache
+        env:
+          YARN_ENABLE_IMMUTABLE_INSTALLS: false
 
       - name: NPM Build Script
         run: npm run build
