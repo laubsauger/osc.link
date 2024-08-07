@@ -21,7 +21,7 @@ jobs:
           node-version-file: 'package.json'
 
       - name: Install Dependencies
-        run: npm ci --no-audit
+        run: npm install --no-audit
 
       - name: Build Electron
         run: npm run build
