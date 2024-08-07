@@ -17,7 +17,8 @@
     ],
     "paths":{
       "osc": ["./src/types/osc"]
-    }
+    },
+    "types": ["node", "react", "react-dom"]
   },
   "include": [
     "src/**/*"

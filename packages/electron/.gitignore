@@ -3,3 +3,6 @@
 **/certs
 **/ssl_certs
 out/
+
+!public/
+
