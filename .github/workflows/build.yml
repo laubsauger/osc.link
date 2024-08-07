@@ -22,7 +22,6 @@ jobs:
 
       - name: Install Dependencies and Build
         run: yarn install --immutable --immutable-cache
-        working-directory: packages/electron
 
       - name: NPM Build Script
         run: npm run build
