@@ -4,6 +4,10 @@
   "private": true,
   "homepage": "./",
   "main": "public/electron.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laubsauger/osc.link.git"
+  },
   "description": "socketosc server wrapped in electron",
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
