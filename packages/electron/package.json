@@ -16,7 +16,7 @@
     "build": "cross-env CI=false NODE_ENV=production react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev": "concurrently --kill-others \"cross-env BROWSER=none PORT=3001 yarn start:app\" \"electron .\"",
+    "dev": "concurrently --kill-others \"cross-env BROWSER=none PORT=3001 npm run start:app\" \"electron .\"",
     "start:app": "cross-env PORT=3001 react-scripts start",
     "start:server": "tsc && cross-env NODE_ENV=production node ./dist/server.js",
     "dev:server": "nodemon -e ts  --exec \"tsc && cross-env NODE_ENV=development node ./dist/server.js\"",
@@ -60,9 +60,7 @@
     "mobx-react-lite": "^3.2.3",
     "osc": "^2.4.2",
     "query-string": "^7.1.1",
-    "react": "^17.0.2",
     "react-bootstrap": "^2.1.2",
-    "react-dom": "^17.0.2",
     "react-router-dom": "^6.2.1",
     "react-scripts": "5.0.0",
     "sass": "^1.49.7",
@@ -87,6 +85,10 @@
     "nodemon": "^2.0.15",
     "typescript": "^4.5.5",
     "wait-on": "^6.0.1"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   },
   "build": {
     "win": {

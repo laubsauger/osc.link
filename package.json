@@ -12,8 +12,13 @@
     "test": "npm run test --workspaces",
     "build": "npm run build --workspace osc.link-electron"
   },
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "husky": "^9.1.4"
   },
   "engines": {
