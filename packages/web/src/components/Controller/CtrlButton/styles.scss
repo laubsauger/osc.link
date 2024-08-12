@@ -1,0 +1,37 @@
+.CtrlButton {
+  touch-action: manipulation;
+  min-width: 3rem;
+  height: 3rem;
+  border-radius: 16px;
+  font-weight: bold;
+  outline-offset: 3px;
+  border: 3px solid transparent;
+  background-color: rgba(0 0 0 / 25%);
+  padding-right: 12px;
+  padding-left: 12px;
+  font-size: 16px;
+  -webkit-user-select: none; /* disable selection/Copy of UIWebView */
+  -webkit-touch-callout: none; /* disable the IOS popup when long-press on a link */
+  user-select: none !important;
+  .handle {
+    cursor: ns-resize;
+  }
+
+  &:active {
+    border-color: transparent !important;
+    color: #000;
+  }
+}
+
+@media screen and (max-width: 540px) {
+  /* styles for screens smaller than 540px */
+  .CtrlToggle,
+  .CtrlButton {
+    height: 40px !important;
+  }
+
+  .CtrlToggle .hasIcon .button-text,
+  .CtrlButton .hasIcon .button-text {
+    display: none;
+  }
+}

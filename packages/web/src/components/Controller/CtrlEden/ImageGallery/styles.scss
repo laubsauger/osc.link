@@ -1,0 +1,52 @@
+.image-gallery {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.image-gallery-slide img {
+  width: 100% !important;
+  height: auto !important;
+  max-height: 48vh !important;
+  max-height: 48dvh !important;
+  min-height: 48vh !important;
+  min-height: 48dvh !important;
+  //object-fit: contain !important;
+  overflow: hidden !important;
+  object-position: center center !important;
+}
+
+.image-gallery-slide .gallery-img {
+  object-fit: contain !important;
+}
+
+.image-gallery-slide .gallery-bg-img {
+  object-fit: cover !important;
+}
+
+.image-gallery-slide .gallery-bg-img-wrap {
+  top: 0;
+  filter: blur(16px);
+  bottom: 0;
+  left: 20px;
+  right: 20px;
+  opacity: 0.6;
+}
+
+.fullscreen .image-gallery-slide img {
+  max-height: 100dvh !important;
+}
+
+.voted-result {
+  border-color: #26c69d !important;
+  background: #26c69d !important;
+
+  .image-gallery-thumbnail-label {
+    color: #26c69d !important;
+    background: rgba(0,0,0,0.7);
+  }
+}
+
+.image-gallery-thumbnails {
+  padding-top: 6px;
+  padding-bottom: 0;
+}

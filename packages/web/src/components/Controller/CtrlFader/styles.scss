@@ -1,0 +1,93 @@
+.CtrlFader {
+  touch-action: manipulation;
+  width: 4.75rem;
+  height: 4.75rem;
+  border-radius: 16px;
+  font-weight: bold;
+  font-size: 1.25rem;
+  outline-offset: 3px;
+  border: 2px solid transparent;
+  background-color: rgba(0 0 0 / 25%);
+
+  &:active {
+    border-color: transparent !important;
+    outline-width: 1px;
+  }
+
+  & > :first-child :last-child {
+    width: 100%;
+
+    div {
+      width: 100%;
+      background-color: #777;
+
+      &:active {
+        background-color: #fff;
+      }
+    }
+  }
+
+  &.CtrlFader-black {
+    border-color: #333;
+
+    & :first-child {
+      background-color: #33333333;
+    }
+
+    & > :first-child > :first-child {
+      background-color: #33333388;
+    }
+
+    //&:active {
+      outline-color: #000000;
+    //}
+  }
+
+  &.CtrlFader-red {
+    border-color: #ff444433;
+
+    & :first-child {
+      background-color: #ff444433;
+    }
+
+    & > :first-child > :first-child {
+      background-color: #ff444488;
+    }
+
+    //&:active {
+      outline-color: #ff4444;
+    //}
+  }
+
+  &.CtrlFader-green {
+    border-color: #44844422;
+
+    & :first-child {
+      background-color: #44844433;
+    }
+
+    & > :first-child > :first-child {
+      background-color: #44844488;
+    }
+
+    //&:active {
+      outline-color: #448444;
+    //}
+  }
+
+  &.CtrlFader-blue {
+    border-color: #3333ff22;
+
+    & :first-child {
+      background-color: #3333ff33;
+    }
+
+    & > :first-child > :first-child {
+      background-color: #3333ff88;
+    }
+
+    //&:active {
+      outline-color: #3333ff;
+    //}
+  }
+}
