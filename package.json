@@ -5,17 +5,18 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace osc.link-server\" \"npm start --workspace osc.link-web\" \"npm run dev --workspace osc.link-electron\"",
-    "start-server": "npm run dev --workspace osc.link-server",
-    "start-web": "npm start --workspace osc.link-web",
-    "start-electron": "npm run dev --workspace osc.link-electron",
-    "test": "npm run test --workspaces",
-    "build": "npm run build --workspace osc.link-electron"
+    "dev": "concurrently \"yarn workspace osc.link-server run dev\" \"yarn workspace osc.link-web start\" \"yarn workspace osc.link-electron run dev\"",
+    "start-server": "yarn workspace osc.link-server run dev",
+    "start-web": "yarn workspace osc.link-web start",
+    "start-electron": "yarn workspace osc.link-electron run dev",
+    "test": "yarn workspaces run test",
+    "build": "yarn workspace osc.link-electron run build"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"
   },
   "engines": {
     "node": "18.19.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22"
 }
