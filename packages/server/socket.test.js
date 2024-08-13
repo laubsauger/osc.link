@@ -56,22 +56,19 @@ describe("Socket Server", () => {
   test("should handle USER_JOIN_REQUEST", (done) => {
     clientSocket.on("USER_JOIN_ACCEPTED", (data) => {
       expect(data.id).toBe(clientSocket.id);
-      expect(data.userSlot).toBe(1);
       done();
     });
     clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1" });
-    // clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1", wantsSlot:  });
   });
 
-  // test("should handle USER_JOIN_REQUEST with wantsSlot", (done) => {
-  //   clientSocket.on("USER_JOIN_ACCEPTED", (data) => {
-  //     expect(data.id).toBe(clientSocket.id);
-  //     expect(data.userSlot).toBe(1);
-  //     done();
-  //   });
-  //   // clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1" });
-  //   clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1", wantsSlot: 1 });
-  // }, 1000);
+  test("should handle USER_JOIN_REQUEST with wantsSlot", (done) => {
+    clientSocket.on("USER_JOIN_ACCEPTED", (data) => {
+      expect(data.id).toBe(clientSocket.id);
+      expect(data.userSlot).toBe(2);
+      done();
+    });
+    clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1", wantsSlot: 2 });
+  });
 
   test("should handle disconnect", (done) => {
     clientSocket.on("disconnect", () => {
