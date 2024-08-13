@@ -62,7 +62,7 @@ io.on("connection", (socket) => {
   socket.on("OSC_JOIN_REQUEST", (data) =>
     onOscJoinRequest(socket, data, assignedClientSlotIndex)
   );
-  socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data));
+  socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data, io));
   socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data, assignedClientSlotIndex));
   socket.on("disconnect", () => onDisconnect(socket, assignedClientSlotIndex));
 

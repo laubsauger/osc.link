@@ -222,7 +222,7 @@ function resetUsersRoom() {
  * - For the default session, room: "control:1", the oscHost is not sending a room.
  *   - there might be a state issue where the electron host is sending this
  */
-function onOscHostMessage(socket, dataArg) {
+function onOscHostMessage(socket, dataArg, io) {
   const { data, room } = dataArg;
 
   const processing_start = new Date().getTime();
@@ -262,7 +262,13 @@ function onOscHostMessage(socket, dataArg) {
     users: instance.users,
   });
 
-  socket.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
+  console.log(instance.rooms.users)
+  console.log(console.log(socket.adapter.rooms))
+  /**
+   * Uncertain that this ever works? When are users set?
+   */
+  io.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
+  // socket.emit("OSC_HOST_MESSAGE", {
     ...data,
     processed: new Date().getTime() - processing_start,
   });

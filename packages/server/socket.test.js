@@ -21,7 +21,7 @@ describe("Socket Server", () => {
         serverSocket = socket;
         socket.on("OSC_JOIN_REQUEST", (room) => onOscJoinRequest(socket, room));
         socket.on("USER_JOIN_REQUEST", (data) => onUserJoinRequest(socket, data));
-        socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data));
+        socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data, io));
         socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data));
         socket.on("disconnect", () => {
           console.log('disconnecting', socket.instanceId)
@@ -68,6 +68,31 @@ describe("Socket Server", () => {
       done();
     });
     clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1", wantsSlot: 2 });
+  });
+
+  test.only("should handle OSC_HOST_MESSAGE", (done) => {
+    // setup test
+    clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1" });
+
+    const testData = { data: "test host message", room: 'control:1'};
+    clientSocket.emit("OSC_HOST_MESSAGE", testData);
+    console.log(clientSocket)
+    clientSocket.on("OSC_HOST_MESSAGE", (data) => {
+      console.log(data)
+      expect(data.message).toBe(testData.message);
+      done();
+    });
+  });
+
+  test("should handle OSC_CTRL_MESSAGE", (done) => {
+    const testData = { message: "test control message" };
+    const assignedClientSlotIndex = 1; // Example slot index
+    clientSocket.on("OSC_CTRL_MESSAGE_RECEIVED", (data) => {
+      expect(data.message).toBe(testData.message);
+      expect(data.slotIndex).toBe(assignedClientSlotIndex);
+      done();
+    });
+    clientSocket.emit("OSC_CTRL_MESSAGE", testData, assignedClientSlotIndex);
   });
 
   test("should handle disconnect", (done) => {
