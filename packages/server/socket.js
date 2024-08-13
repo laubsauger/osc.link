@@ -152,7 +152,7 @@ function onDisconnect(socket, assignedClientSlotIndex) {
   console.log(socket.instanceId)
 
   if (!instance) {
-    // console.error("disconnect::Invalid Instance");
+    console.error("disconnect::Invalid Instance");
     return false;
   }
 
@@ -258,7 +258,7 @@ function onOscHostMessage(socket, dataArg) {
   });
 }
 
-function onOscCtrlMessage(socket, data) {
+function onOscCtrlMessage(socket, data, assignedClientSlotIndex) {
   const processing_start = new Date().getTime();
   const instance = instances.filter((item) => item.id === socket.instanceId)[0];
 
@@ -278,7 +278,7 @@ function onOscCtrlMessage(socket, data) {
   );
   // @todo: make this dependant on current config
   // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
-  io.sockets.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
+  socket.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
     client_index: assignedClientSlotIndex,
     processed: new Date().getTime() - processing_start,
@@ -289,7 +289,7 @@ function onOscCtrlMessage(socket, data) {
       user.id === socket.id ? { ...user, name: data.text } : user
     );
 
-    io.sockets.to(instance.rooms.users).emit("USER_UPDATE", {
+    socket.to(instance.rooms.users).emit("USER_UPDATE", {
       id: socket.id,
       name: data.text,
       client_index: assignedClientSlotIndex,
