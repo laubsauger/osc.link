@@ -1,0 +1,28 @@
+{
+  "name": "osc.link",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace osc.link-server\" \"npm start --workspace osc.link-web\" \"npm run dev --workspace osc.link-electron\"",
+    "start-server": "npm run dev --workspace osc.link-server",
+    "start-web": "npm start --workspace osc.link-web",
+    "start-electron": "npm run dev --workspace osc.link-electron",
+    "test": "npm run test --workspaces",
+    "build": "npm run build --workspace osc.link-electron"
+  },
+  "dependencies": {
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "husky": "^9.1.4"
+  },
+  "engines": {
+    "node": "v20.16.0",
+    "npm": "10.8.1"
+  }
+}
