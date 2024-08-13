@@ -6,6 +6,8 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
         return slot;
       }
 
+      console.log(slot);
+
       if (slot.client.id) {
         console.log(
           "slot is occupied, disconnecting current tenant",
