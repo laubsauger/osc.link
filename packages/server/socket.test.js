@@ -19,14 +19,19 @@ describe("Socket Server", () => {
       clientSocket = new Client(`http://localhost:${port}`);
       io.on("connection", (socket) => {
         serverSocket = socket;
-        socket.on("OSC_JOIN_REQUEST", (room) => onOscJoinRequest(socket, room));
-        socket.on("USER_JOIN_REQUEST", (data) => onUserJoinRequest(socket, data));
-        socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data, io));
-        socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data));
-        socket.on("disconnect", () => {
-          console.log('disconnecting', socket.instanceId)
-          onDisconnect(socket);
-        });
+        socket.on("OSC_JOIN_REQUEST", (room) =>
+          onOscJoinRequest(socket, room, io)
+        );
+        socket.on("USER_JOIN_REQUEST", (data) =>
+          onUserJoinRequest(socket, data, io)
+        );
+        socket.on("OSC_HOST_MESSAGE", (data) =>
+          onOscHostMessage(socket, data, io)
+        );
+        socket.on("OSC_CTRL_MESSAGE", (data) =>
+          onOscCtrlMessage(socket, data, io)
+        );
+        socket.on("disconnect", () => onDisconnect(socket, io));
       });
       clientSocket.on("connect", done);
     });
@@ -74,11 +79,11 @@ describe("Socket Server", () => {
     // setup test
     clientSocket.emit("USER_JOIN_REQUEST", { room: "users:1" });
 
-    const testData = { data: "test host message", room: 'control:1'};
+    const testData = { data: "test host message", room: "control:1" };
     clientSocket.emit("OSC_HOST_MESSAGE", testData);
-    console.log(clientSocket)
+    console.log(clientSocket);
     clientSocket.on("OSC_HOST_MESSAGE", (data) => {
-      console.log(data)
+      console.log(data);
       expect(data.message).toBe(testData.message);
       done();
     });

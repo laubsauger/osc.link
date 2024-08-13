@@ -4,7 +4,7 @@ const {
   createRoomState,
   assignClientSlot,
   resetClientSlot,
-} = require("./utils"); // Adjust the path as necessary
+} = require("./utils");
 
 const roomTypes = {
   users: "users",
@@ -14,6 +14,7 @@ const roomTypes = {
 const instancesConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "dummy/instances.json"), "utf-8")
 );
+
 const instances = instancesConfig.map((instanceConfig) => {
   let userSlots = [];
   for (let i = 0; i < instanceConfig.settings.slots; i++) {
@@ -31,18 +32,18 @@ const instances = instancesConfig.map((instanceConfig) => {
   };
 });
 
-function onOscJoinRequest(socket, room) {
+function onOscJoinRequest({ socket, data, io }) {
   const instance = instances.filter((item) => {
-    return item.rooms.control === room;
+    return item.rooms.control === data;
   })[0];
 
   if (!instance) {
     console.log("instance", instance);
-    console.error("Invalid Room requested", room);
+    console.error("Invalid Room requested", data);
     return false;
   }
 
-  console.log(`OSC_JOIN_REQUEST`, "| Instance:", instance.id, socket.id, room);
+  console.log(`OSC_JOIN_REQUEST`, "| Instance:", instance.id, socket.id, data);
 
   socket.join(instance.rooms.control);
 
@@ -61,10 +62,10 @@ function onOscJoinRequest(socket, room) {
     ...newRoomState,
   });
 
-  socket.to(roomTypes.control).emit("OSC_JOINED", newRoomState);
+  io.to(roomTypes.control).emit("OSC_JOINED", newRoomState);
 }
 
-function onUserJoinRequest(socket, data, assignedClientSlotIndex) {
+function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
   const { room, wantsSlot } = data;
   const instance = instances.filter((item) => item.rooms.users === room)[0];
 
@@ -92,18 +93,18 @@ function onUserJoinRequest(socket, data, assignedClientSlotIndex) {
     instance,
     socket.adapter.rooms.get(instance.rooms.users)
   );
-  console.log(roomState)
+  console.log(roomState);
   assignedClientSlotIndex = assignClientSlot(
     instance,
     roomState,
     socket,
     requestedSlotIndex
   );
-  console.log('assignedClientSlotIndex', assignedClientSlotIndex)
+  console.log("assignedClientSlotIndex", assignedClientSlotIndex);
   instance.lastTriedSlotIndex = assignedClientSlotIndex;
 
   if (assignedClientSlotIndex === false) {
-    console.log('Room is full;')
+    console.log("Room is full;");
     socket.emit("USER_JOIN_REJECTED", {
       reason: `Room is currently full ${roomState.usedSlots}/${roomState.maxSlots}`,
     });
@@ -114,7 +115,7 @@ function onUserJoinRequest(socket, data, assignedClientSlotIndex) {
   socket.join(instance.rooms.users);
   socket.instanceId = instance.id;
 
-  console.log('user join accepted')
+  console.log("user join accepted");
   socket.emit("USER_JOIN_ACCEPTED", {
     id: socket.id,
     userSlot: assignedClientSlotIndex,
@@ -133,23 +134,23 @@ function onUserJoinRequest(socket, data, assignedClientSlotIndex) {
     socket.adapter.rooms.get(instance.rooms.users)
   );
   console.log("OSC_CTRL_USER_JOINED", "| Instance:", instance.id, socket.id);
-  socket.to(instance.rooms.control).emit("OSC_CTRL_USER_JOINED", {
+  io.to(instance.rooms.control).emit("OSC_CTRL_USER_JOINED", {
     id: socket.id,
     client_index: assignedClientSlotIndex,
     usedSlots: newRoomState.usedSlots,
     maxSlots: instance.settings.slots,
   });
 
-  socket.to(instance.rooms.users).emit("USER_JOINED", {
+  io.to(instance.rooms.users).emit("USER_JOINED", {
     ...newRoomState,
     id: socket.id,
     client_index: assignedClientSlotIndex,
   });
 }
 
-function onDisconnect(socket, assignedClientSlotIndex) {
+function onDisconnect({ socket, assignedClientSlotIndex, io }) {
   const instance = instances.filter((item) => item.id === socket.instanceId)[0];
-  console.log(socket.instanceId)
+  console.log(socket.instanceId);
 
   if (!instance) {
     console.error("disconnect::Invalid Instance");
@@ -163,14 +164,14 @@ function onDisconnect(socket, assignedClientSlotIndex) {
     socket.adapter.rooms.get(instance.rooms.users)
   );
 
-  socket.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
+  io.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
     id: socket.id,
     client_index: assignedClientSlotIndex,
     usedSlots: newRoomState.usedSlots,
     maxSlots: instance.settings.slots,
   });
 
-  socket.to(instance.rooms.users).emit("USER_LEFT", {
+  io.to(instance.rooms.users).emit("USER_LEFT", {
     ...newRoomState,
     id: socket.id,
     users: newRoomState.users.filter(
@@ -222,15 +223,13 @@ function resetUsersRoom() {
  * - For the default session, room: "control:1", the oscHost is not sending a room.
  *   - there might be a state issue where the electron host is sending this
  */
-function onOscHostMessage(socket, dataArg, io) {
-  const { data, room } = dataArg;
-
+function onOscHostMessage({ socket, data: { data: game, room }, io }) {
   const processing_start = new Date().getTime();
   if (
-    data &&
-    data.gameState &&
-    data.gameState.phase === "kill" &&
-    data.gameState.code !== "affenpuperzenkrebs"
+    game &&
+    game.gameState &&
+    game.gameState.phase === "kill" &&
+    game.gameState.code !== "affenpuperzenkrebs"
   ) {
     resetUsersRoom();
     console.error(
@@ -255,26 +254,26 @@ function onOscHostMessage(socket, dataArg, io) {
     "| Instance:",
     instance.id,
     "|",
-    JSON.stringify(data, null, 2)
+    JSON.stringify(game, null, 2)
   );
   console.log({
     userSlots: instance.userSlots.filter((slot) => slot.client !== null),
     users: instance.users,
   });
 
-  console.log(instance.rooms.users)
-  console.log(console.log(socket.adapter.rooms))
+  console.log(instance.rooms.users);
+  console.log(console.log(socket.adapter.rooms));
   /**
    * Uncertain that this ever works? When are users set?
    */
   io.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
-  // socket.emit("OSC_HOST_MESSAGE", {
-    ...data,
+    // socket.emit("OSC_HOST_MESSAGE", {
+    ...game,
     processed: new Date().getTime() - processing_start,
   });
 }
 
-function onOscCtrlMessage(socket, data, assignedClientSlotIndex) {
+function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
   const processing_start = new Date().getTime();
   const instance = instances.filter((item) => item.id === socket.instanceId)[0];
 
@@ -294,7 +293,7 @@ function onOscCtrlMessage(socket, data, assignedClientSlotIndex) {
   );
   // @todo: make this dependant on current config
   // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
-  socket.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
+  io.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
     client_index: assignedClientSlotIndex,
     processed: new Date().getTime() - processing_start,
@@ -305,7 +304,7 @@ function onOscCtrlMessage(socket, data, assignedClientSlotIndex) {
       user.id === socket.id ? { ...user, name: data.text } : user
     );
 
-    socket.to(instance.rooms.users).emit("USER_UPDATE", {
+    io.to(instance.rooms.users).emit("USER_UPDATE", {
       id: socket.id,
       name: data.text,
       client_index: assignedClientSlotIndex,

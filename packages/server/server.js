@@ -58,16 +58,30 @@ let io = require("socket.io")({
  * Register all socket event handlers. There should only be one "connection" handler.
  */
 io.on("connection", (socket) => {
+  // assignedClientSlotIndex is tied to the socket state.
+  // should do via session cookie?
   let assignedClientSlotIndex = false;
   socket.on("OSC_JOIN_REQUEST", (data) =>
-    onOscJoinRequest(socket, data, assignedClientSlotIndex)
+    onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
   );
-  socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data, io));
-  socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data, assignedClientSlotIndex));
-  socket.on("disconnect", () => onDisconnect(socket, assignedClientSlotIndex));
+  socket.on("OSC_HOST_MESSAGE", (data) =>
+    onOscHostMessage({
+      socket,
+      data,
+      io,
+    })
+  );
+
+  socket.on("OSC_CTRL_MESSAGE", (data) =>
+    onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
+  );
 
   socket.on("USER_JOIN_REQUEST", (data) =>
-    onUserJoinRequest(socket, data, assignedClientSlotIndex)
+    onUserJoinRequest({ socket, data, assignedClientSlotIndex, io })
+  );
+
+  socket.on("disconnect", () =>
+    onDisconnect({ socket, assignedClientSlotIndex, io })
   );
 
   socket.on("connect_failed", (err) => {
