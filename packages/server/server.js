@@ -3,7 +3,13 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
-const { onConnection } = require("./socket"); // Adjust the path as necessary
+const {
+  onOscJoinRequest,
+  onOscHostMessage,
+  onOscCtrlMessage,
+  onDisconnect,
+  onUserJoinRequest,
+} = require("./socket"); // Adjust the path as necessary
 
 const app = express();
 const port = Number(process.env.PORT) || 8080;
@@ -57,7 +63,7 @@ io.on("connection", (socket) => {
     onOscJoinRequest(socket, data, assignedClientSlotIndex)
   );
   socket.on("OSC_HOST_MESSAGE", (data) => onOscHostMessage(socket, data));
-  socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data));
+  socket.on("OSC_CTRL_MESSAGE", (data) => onOscCtrlMessage(socket, data, assignedClientSlotIndex));
   socket.on("disconnect", () => onDisconnect(socket, assignedClientSlotIndex));
 
   socket.on("USER_JOIN_REQUEST", (data) =>
