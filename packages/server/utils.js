@@ -1,4 +1,5 @@
 function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
+    console.log('requested slot index')
   // override requested slot and assign new client id to it
   if (requestedSlotIndex) {
     instance.userSlots = instance.userSlots.map((slot) => {
@@ -6,9 +7,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
         return slot;
       }
 
-      console.log(slot);
-
-      if (slot.client.id) {
+      if (slot.client && slot.client.id) {
         console.log(
           "slot is occupied, disconnecting current tenant",
           slot.client.id
@@ -45,8 +44,6 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
   const nextFreeSlotIndex = instance.settings.randomPick
     ? getRandomArrayElement(freeSlotsExcludingLastTried).slot_index
     : freeSlotsExcludingLastTried[0].slot_index;
-
-  console.log({ nextFreeSlotIndex });
 
   // assign client id to it
   instance.userSlots = instance.userSlots.map((slot) => {

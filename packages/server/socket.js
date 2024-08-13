@@ -215,11 +215,17 @@ function resetUsersRoom() {
   });
 }
 
+/**
+ * OSC_HOST_MESSAGE is sent by the electron "host".
+ * Notes:
+ * - Is the Electron app the host?
+ * - For the default session, room: "control:1", the oscHost is not sending a room.
+ *   - there might be a state issue where the electron host is sending this
+ */
 function onOscHostMessage(socket, dataArg) {
   const { data, room } = dataArg;
 
   const processing_start = new Date().getTime();
-  console.log(data);
   if (
     data &&
     data.gameState &&
@@ -233,8 +239,12 @@ function onOscHostMessage(socket, dataArg) {
     return false;
   }
 
+  /**
+   * This will fail because packages/electron/public/server.js
+   * is emitting an empty message when a user joins. This is likely
+   * due to some specific use case for stateful client UI.
+   */
   const instance = instances.filter((item) => item.rooms.control === room)[0];
-
   if (!instance) {
     console.error("OSC_HOST_MESSAGE::Invalid Instance");
     return false;
@@ -252,7 +262,7 @@ function onOscHostMessage(socket, dataArg) {
     users: instance.users,
   });
 
-  io.sockets.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
+  socket.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
     ...data,
     processed: new Date().getTime() - processing_start,
   });

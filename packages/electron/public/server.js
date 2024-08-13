@@ -228,7 +228,9 @@ class SocketOSCServer {
       ));
 
       this.pushSessionState({ usedSlots: payload.usedSlots });
-
+      /**
+       * Todo: What is the use case for this? Is it for a specific session type?
+       */
       // pushing the last host message on join to move late comers to the current phase instead of leaving them hanging
       this.socket.emit('OSC_HOST_MESSAGE', this.sessionState.lastHostMessage);
     });
