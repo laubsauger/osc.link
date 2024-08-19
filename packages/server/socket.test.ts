@@ -1,6 +1,7 @@
 import { Server, Socket as ServerSocketType } from "socket.io";
 import { Socket as ClientSocket } from "socket.io-client";
 import { io } from "socket.io-client";
+import { createServer } from 'http';
 const {
   onOscJoinRequest,
   onOscHostMessage,
@@ -16,9 +17,10 @@ describe("Socket Server", () => {
   let ioServer, serverSocket: ServerSocketType;
   let clientSocket: ClientSocket;
   let ctrlSocket: ClientSocket;
+  let httpServer;
 
   beforeAll((done) => {
-    const httpServer = require("http").createServer();
+    httpServer = createServer();
     ioServer = new Server(httpServer);
     httpServer.listen(() => {
       const port = httpServer.address().port;
@@ -52,6 +54,8 @@ describe("Socket Server", () => {
   afterAll(() => {
     ioServer.close();
     clientSocket.close();
+    ctrlSocket.close();
+    httpServer.close();
   });
 
 
