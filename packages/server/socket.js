@@ -39,7 +39,6 @@ function onOscJoinRequest({ socket, data: room, io }) {
   })[0];
 
   if (!instance) {
-    console.log("instance", instance);
     console.error("Invalid Room requested", room);
     return false;
   }
@@ -149,7 +148,6 @@ function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
 
 function onDisconnect({ socket, assignedClientSlotIndex, io }) {
   const instance = instances.filter((item) => item.id === socket.instanceId)[0];
-  console.log(socket.instanceId);
 
   if (!instance) {
     console.error("disconnect::Invalid Instance", socket.instanceId);
@@ -219,8 +217,6 @@ function resetUsersRoom() {
  * OSC_HOST_MESSAGE is sent by the electron "host".
  * Notes:
  * - Is the Electron app the host?
- * - For the default session, room: "control:1", the oscHost is not sending a room.
- *   - there might be a state issue where the electron host is sending this
  * - @todo rework this data argument. Previous implementation had { data, room },
  *         name would be better if it was { game, room }
  */
@@ -258,14 +254,6 @@ function onOscHostMessage({ socket, data: { data: game, room }, io }) {
     "|",
     JSON.stringify(game, null, 2)
   );
-  console.log({
-    userSlots: instance.userSlots.filter((slot) => slot.client !== null),
-    users: instance.users,
-  });
-
-  console.log(instance.rooms.users);
-  console.log(socket.adapter.rooms);
-  console.log(game, { ...game })
   /**
    * Uncertain that this ever works? When are users set?
    */
@@ -310,7 +298,6 @@ function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
    */
   // @todo: make this dependant on current config
   // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
-  console.log(instance.rooms.control)
   io.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
     client_index: assignedClientSlotIndex,
