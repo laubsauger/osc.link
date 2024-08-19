@@ -5,6 +5,7 @@ const {
   assignClientSlot,
   resetClientSlot,
 } = require("./utils");
+const { Server } = require("socket.io");
 
 const roomTypes = {
   users: "users",
@@ -32,19 +33,18 @@ const instances = instancesConfig.map((instanceConfig) => {
   };
 });
 
-function onOscJoinRequest({ socket, data, io }) {
+function onOscJoinRequest({ socket, data: room, io }) {
   const instance = instances.filter((item) => {
-    return item.rooms.control === data;
+    return item.rooms.control === room;
   })[0];
 
   if (!instance) {
     console.log("instance", instance);
-    console.error("Invalid Room requested", data);
+    console.error("Invalid Room requested", room);
     return false;
   }
 
-  console.log(`OSC_JOIN_REQUEST`, "| Instance:", instance.id, socket.id, data);
-
+  console.log(`OSC_JOIN_REQUEST`, "| Instance:", instance.id, socket.id, room);
   socket.join(instance.rooms.control);
 
   const newRoomState = createRoomState(
@@ -93,14 +93,13 @@ function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
     instance,
     socket.adapter.rooms.get(instance.rooms.users)
   );
-  console.log(roomState);
+
   assignedClientSlotIndex = assignClientSlot(
     instance,
     roomState,
     socket,
     requestedSlotIndex
   );
-  console.log("assignedClientSlotIndex", assignedClientSlotIndex);
   instance.lastTriedSlotIndex = assignedClientSlotIndex;
 
   if (assignedClientSlotIndex === false) {
@@ -109,7 +108,7 @@ function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
       reason: `Room is currently full ${roomState.usedSlots}/${roomState.maxSlots}`,
     });
 
-    return;
+    return assignedClientSlotIndex;
   }
 
   socket.join(instance.rooms.users);
@@ -153,7 +152,7 @@ function onDisconnect({ socket, assignedClientSlotIndex, io }) {
   console.log(socket.instanceId);
 
   if (!instance) {
-    console.error("disconnect::Invalid Instance");
+    console.error("disconnect::Invalid Instance", socket.instanceId);
     return false;
   }
 
@@ -222,9 +221,12 @@ function resetUsersRoom() {
  * - Is the Electron app the host?
  * - For the default session, room: "control:1", the oscHost is not sending a room.
  *   - there might be a state issue where the electron host is sending this
+ * - @todo rework this data argument. Previous implementation had { data, room },
+ *         name would be better if it was { game, room }
  */
 function onOscHostMessage({ socket, data: { data: game, room }, io }) {
   const processing_start = new Date().getTime();
+  
   if (
     game &&
     game.gameState &&
@@ -262,21 +264,32 @@ function onOscHostMessage({ socket, data: { data: game, room }, io }) {
   });
 
   console.log(instance.rooms.users);
-  console.log(console.log(socket.adapter.rooms));
+  console.log(socket.adapter.rooms);
+  console.log(game, { ...game })
   /**
    * Uncertain that this ever works? When are users set?
    */
   io.to(instance.rooms.users).emit("OSC_HOST_MESSAGE", {
-    // socket.emit("OSC_HOST_MESSAGE", {
     ...game,
     processed: new Date().getTime() - processing_start,
   });
 }
 
+
+
+/**
+ * Handles the OSC_CTRL_MESSAGE event.
+ *
+ * @param {Object} params - The parameters for the function.
+ * @param {Object} params.socket - The socket instance.
+ * @param {Object} params.data - The data received from the client.
+ * @param {number} params.assignedClientSlotIndex - The index of the client slot assigned.
+ * @param {Server} params.io - The Socket.IO server instance.
+ */
 function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
+  console.log('onOscCtrlMessage', io.instanceId)
   const processing_start = new Date().getTime();
   const instance = instances.filter((item) => item.id === socket.instanceId)[0];
-
   if (!instance) {
     console.error("OSC_CTRL_MESSAGE::Invalid Instance");
     return false;
@@ -291,8 +304,13 @@ function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
     "|",
     data
   );
+  /**
+   * why is this also emitting a OSC_CTRL_MESSAGE after receiving OSC_CTRL_MESSAGE?
+   * 
+   */
   // @todo: make this dependant on current config
   // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
+  console.log(instance.rooms.control)
   io.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
     client_index: assignedClientSlotIndex,

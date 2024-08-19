@@ -61,7 +61,6 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
 }
 
 function resetClientSlot(instance, client) {
-  console.log(instance);
   instance.userSlots = instance.userSlots.map((slot) => {
     if (slot.client && slot.client.id !== client.id) {
       return slot;

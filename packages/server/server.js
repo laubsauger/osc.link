@@ -77,7 +77,7 @@ io.on("connection", (socket) => {
   );
 
   socket.on("USER_JOIN_REQUEST", (data) =>
-    onUserJoinRequest({ socket, data, assignedClientSlotIndex, io })
+   assignedClientSlotIndex = onUserJoinRequest({ socket, data, assignedClientSlotIndex, io })
   );
 
   socket.on("disconnect", () =>
