@@ -43,7 +43,7 @@ router.post(
 );
 
 // Read all instances
-router.get("/", async (req, res) => {
+router.get("/", ClerkExpressRequireAuth(), async (req, res) => {
   try {
     const instances = await Instance.findAll();
     res.status(200).json(instances);
