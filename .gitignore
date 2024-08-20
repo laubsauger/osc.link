@@ -118,3 +118,6 @@ build/Release
 
 # Windows
 Thumbs.db
+
+# Database
+database.sqlite
