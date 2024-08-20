@@ -13,6 +13,7 @@
     "build": "npm run build --workspace osc.link-electron"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "socket.io-client": "^4.7.5"

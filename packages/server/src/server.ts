@@ -1,5 +1,7 @@
 // @ts-nocheck
 // TODO: Update to TypeScript
+import dotenv from 'dotenv';
+dotenv.config();
 
 const express = require("express");
 const http = require("http");
@@ -12,14 +14,12 @@ const {
   onDisconnect,
   onUserJoinRequest,
 } = require("./socket");
-const { sequelize } = require('./models');
+import sequelize from './config/database';
 import instanceRoutes from './routes/instances';
-
-console.log(instanceRoutes);
-
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 
 const app = express();
-const port = Number(process.env.PORT) || 8080;
+const port = Number(process.env.SERVER_PORT) || 8080;
 
 const headerConfig = (req, res, next) => {
   // allow external requests
@@ -53,6 +53,7 @@ const headerConfig = (req, res, next) => {
 app.use(cors({ origin: "*" }));
 app.use(headerConfig);
 app.use(express.json());
+// app.use(ClerkExpressWithAuth({}));
 app.use("/api", express.static(path.join(__dirname, "dummy")));
 app.use("/api/instances", instanceRoutes);
 
@@ -61,6 +62,7 @@ const server = http.createServer(app).listen(port, async (e) => {
   console.log("listening on " + port);
   await sequelize.sync();
 });
+
 let io = require("socket.io")({
   cors: true,
 }).listen(server);
