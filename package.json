@@ -9,17 +9,21 @@
     "start-server": "npm run dev --workspace osc.link-server",
     "start-web": "npm start --workspace osc.link-web",
     "start-electron": "npm run dev --workspace osc.link-electron",
-    "test": "npm run test --workspaces",
+    "test": "jest",
     "build": "npm run build --workspace osc.link-electron"
   },
   "dependencies": {
     "react": "^18.0.0",
-    "react-dom": "^18.0.0"
+    "react-dom": "^18.0.0",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
     "cross-env": "^7.0.3",
-    "husky": "^9.1.4"
+    "husky": "^9.1.4",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.4"
   },
   "engines": {
     "node": "v20.16.0",
