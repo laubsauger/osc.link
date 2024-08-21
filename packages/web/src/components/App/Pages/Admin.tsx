@@ -20,7 +20,6 @@ const Admin: React.FC = (props) => {
   const { isSignedIn, getToken } = useAuth();
   const [instances, setInstances] = useState<Instance[]>([]);
   const [availableInstances, setAvailableInstances] = useState<Instance[]>([]);
-  console.log(import.meta.env)
   useEffect(() => {
     const fetchInstances = async () => {
       try {
@@ -114,6 +113,9 @@ const Admin: React.FC = (props) => {
         <UserButton />
         <div>
           <h3>Added Instances</h3>
+          {instances.length === 0 ? (
+            <p>No instances</p>
+          ): null}
           {instances.map((instance) => (
             <div key={instance.id}>
               <h4>{instance.name}</h4>
