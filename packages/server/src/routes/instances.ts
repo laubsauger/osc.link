@@ -1,13 +1,14 @@
-import { Router, Request as ExpressRequest } from "express";
+import { Router, Request as ExpressRequest, Response, NextFunction } from "express";
 import {
   ClerkExpressRequireAuth,
   clerkClient,
 } from "@clerk/clerk-sdk-node";
 import Instance from "../models/Instance";
 import User from "../models/User";
+import ensureUserInDatabase from '../middleware/userMiddleware';
 
 
-interface CustomRequest extends ExpressRequest {
+export interface CustomRequest extends ExpressRequest {
   auth: { userId: string };
   body: {
     name: string;
@@ -19,9 +20,13 @@ interface CustomRequest extends ExpressRequest {
 
 const router = Router();
 
+type CustomRequestHandler = (req: CustomRequest, res: Response, next: NextFunction) => Promise<void>;
+
+
 router.post(
   "/",
   ClerkExpressRequireAuth({}),
+  ensureUserInDatabase,
   async (req, res) => {
     const customReq = req as CustomRequest;
     const { userId } = customReq.auth;
@@ -32,11 +37,10 @@ router.post(
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
-
       const instance = await user.createInstance({ name, description, settings });
       res.status(201).json(instance);
     } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ error: "Internal server error.\n " + error });
     }
   }
 );
@@ -88,16 +92,24 @@ router.put("/:id", async (req, res) => {
 });
 
 // Delete an instance by ID
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", ClerkExpressRequireAuth({}), async (req, res) => {
   try {
-    const deleted = await Instance.destroy({
+    const customReq = req as CustomRequest;
+    const instance = await Instance.findByPk(req.params.id);
+
+    if (!instance) {
+      return res.status(404).json({ error: "Instance not found" });
+    }
+
+    if (instance.userId !== customReq.auth.userId) {
+      return res.status(403).json({ error: "You do not have permission to delete this instance" });
+    }
+
+    await Instance.destroy({
       where: { id: req.params.id },
     });
-    if (deleted) {
-      res.status(204).json();
-    } else {
-      res.status(404).json({ error: "Instance not found" });
-    }
+
+    res.status(204).json();
   } catch (error) {
     res.status(500).json({ error: (error as Error).message });
   }
