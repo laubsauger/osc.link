@@ -13,7 +13,7 @@ const {
   onDisconnect,
   onUserJoinRequest,
 } = require("./socket");
-import sequelize from './config/database';
+import sequelize from './database';
 import instanceRoutes from './routes/instances';
 import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
 import defineAssociations from './models/associations';
