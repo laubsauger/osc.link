@@ -1,8 +1,7 @@
 import { Router, Request as ExpressRequest } from "express";
 import {
   ClerkExpressRequireAuth,
-  RequireAuthProp,
-  WithAuthProp,
+  clerkClient,
 } from "@clerk/clerk-sdk-node";
 import Instance from "../models/Instance";
 import User from "../models/User";
@@ -44,9 +43,12 @@ router.post(
 
 // Read all instances
 router.get("/",
-  ClerkExpressRequireAuth(),
+  ClerkExpressRequireAuth({}),
   async (req, res) => {
   try {
+    const customReq = req as CustomRequest;
+    console.log(customReq.auth)
+    console.log(await clerkClient.users.getUser(customReq.auth.userId));
     const instances = await Instance.findAll();
     res.status(200).json(instances);
   } catch (error) {

@@ -1,7 +1,6 @@
 // @ts-nocheck
 // TODO: Update to TypeScript
-import dotenv from 'dotenv';
-dotenv.config();
+import 'dotenv/config';
 
 const express = require("express");
 const http = require("http");
@@ -50,10 +49,9 @@ const headerConfig = (req, res, next) => {
   next();
 };
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "*", credentials: true }));
 app.use(headerConfig);
 app.use(express.json());
-// app.use(ClerkExpressWithAuth({}));
 app.use("/api", express.static(path.join(__dirname, "dummy")));
 app.use("/api/instances", instanceRoutes);
 
