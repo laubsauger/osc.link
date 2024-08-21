@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { StoreProvider } from "./contexts/storeContext";
 import SensorsProvider from "./contexts/sensorsContext";
+import { ClerkProvider } from '@clerk/clerk-react'
 
 import "bootstrap/dist/css/bootstrap.css";
 import "bootstrap-dark-5/dist/css/bootstrap-night.css";
@@ -12,13 +13,25 @@ import { RootStore } from "./stores/rootStore";
 // @ts-ignore
 import reportWebVitals from "./reportWebVitals";
 
+/**
+ * Setup user auth
+ */
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Publishable Key')
+}
+
+
 export default function Index() {
   return (
     <React.StrictMode>
       <SensorsProvider multiplier={3} useGravity={false}>
         <StoreProvider store={new RootStore()}>
           <BrowserRouter>
-            <App />
+            <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+              <App />
+            </ClerkProvider>
           </BrowserRouter>
         </StoreProvider>
       </SensorsProvider>
