@@ -16,6 +16,8 @@ const {
 import sequelize from './config/database';
 import instanceRoutes from './routes/instances';
 import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
+import defineAssociations from './models/associations';
+
 
 const app = express();
 const port = Number(process.env.SERVER_PORT) || 8080;
@@ -58,6 +60,7 @@ app.use("/api/instances", instanceRoutes);
 
 const server = http.createServer(app).listen(port, async (e) => {
   console.log("listening on " + port);
+  defineAssociations();
   await sequelize.sync();
 });
 
