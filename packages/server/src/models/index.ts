@@ -1,8 +1,7 @@
-import User from './User';
+import Admin from './Admin';
 import Instance from './Instance';
 import defineAssociations from './associations';
 
-// Call the function to define associations
 defineAssociations();
 
-export { User, Instance };
+export { Admin, Instance };

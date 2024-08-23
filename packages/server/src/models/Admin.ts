@@ -2,7 +2,7 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../database';
 import Instance from './Instance';
 
-class User extends Model {
+class Admin extends Model {
   public id!: string;
   public email!: string;
   public createdAt!: Date;
@@ -11,7 +11,7 @@ class User extends Model {
   public createInstance!: (instance: { name: string; description?: string; settings?: object }) => Promise<Instance>;
 }
 
-User.init({
+Admin.init({
   id: {
     type: DataTypes.STRING,
     primaryKey: true,
@@ -23,7 +23,7 @@ User.init({
   },
 }, {
   sequelize,
-  modelName: 'User',
+  modelName: 'Admin',
 });
 
-export default User;
+export default Admin;
