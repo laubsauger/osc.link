@@ -1,6 +1,9 @@
+// @ts-nocheck
+// TODO: Update to TypeScript
+import 'dotenv/config';
+
 const express = require("express");
 const http = require("http");
-const fs = require("fs");
 const path = require("path");
 const cors = require("cors");
 const {
@@ -9,10 +12,15 @@ const {
   onOscCtrlMessage,
   onDisconnect,
   onUserJoinRequest,
-} = require("./socket"); // Adjust the path as necessary
+} = require("./socket");
+import sequelize from './database';
+import instanceRoutes from './routes/instances';
+import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
+import defineAssociations from './models/associations';
+
 
 const app = express();
-const port = Number(process.env.PORT) || 8080;
+const port = Number(process.env.SERVER_PORT) || 8080;
 
 const headerConfig = (req, res, next) => {
   // allow external requests
@@ -43,13 +51,19 @@ const headerConfig = (req, res, next) => {
   next();
 };
 
-app.use(cors({ origin: "*" }));
+app.use(cors({ origin: "*", credentials: true }));
 app.use(headerConfig);
+app.use(express.json());
 app.use("/api", express.static(path.join(__dirname, "dummy")));
+app.use("/api/instances", instanceRoutes);
 
-const server = http.createServer(app).listen(port, (e) => {
+
+const server = http.createServer(app).listen(port, async (e) => {
   console.log("listening on " + port);
+  defineAssociations();
+  await sequelize.sync();
 });
+
 let io = require("socket.io")({
   cors: true,
 }).listen(server);
