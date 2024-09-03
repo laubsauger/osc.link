@@ -1,7 +1,7 @@
 import { Server, Socket as ServerSocketType } from "socket.io";
 import { Socket as ClientSocket } from "socket.io-client";
 import { io } from "socket.io-client";
-import { createServer } from 'http';
+import { createServer, Server as HTTPServer } from 'http';
 const {
   onOscJoinRequest,
   onOscHostMessage,
@@ -14,16 +14,17 @@ jest.setTimeout(100); // Set default timeout to 100 ms
 
 
 describe("Socket Server", () => {
-  let ioServer, serverSocket: ServerSocketType;
+  let ioServer: Server, serverSocket: ServerSocketType;
   let clientSocket: ClientSocket;
   let ctrlSocket: ClientSocket;
-  let httpServer;
+  let httpServer: HTTPServer;
 
   beforeAll((done) => {
     httpServer = createServer();
     ioServer = new Server(httpServer);
     httpServer.listen(() => {
-      const port = httpServer.address().port;
+      const address = httpServer.address();
+      const port = typeof address === 'object' && address !== null ? address.port : '';
       clientSocket = io(`http://localhost:${port}`);
       ctrlSocket = io(`http://localhost:${port}`);
       ioServer.on("connection", (socket: ServerSocketType) => {
