@@ -57,6 +57,8 @@ app.use(express.json());
 app.use("/api", express.static(path.join(__dirname, "dummy")));
 app.use("/api/instances", instanceRoutes);
 
+export default app;
+
 
 const server = http.createServer(app).listen(port, async (e) => {
   console.log("listening on " + port);
