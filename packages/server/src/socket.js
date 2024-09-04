@@ -15,9 +15,6 @@ const roomTypes = {
 /**
  * Goal: Use DB instances rather than this static config.
  */
-const instancesConfig = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "dummy/instances.json"), "utf-8")
-);
 
 /**
  * instances is the following object. 
@@ -56,28 +53,37 @@ const instancesConfig = JSON.parse(
  * "slotPick": true,
  * "sequentialPick": false,
  */
-const instances = instancesConfig.map((instanceConfig) => {
-  let userSlots = [];
-  for (let i = 0; i < instanceConfig.settings.slots; i++) {
-    userSlots.push({ slot_index: i + 1, client: null });
+let instances = {};
+
+async function getInstance(instanceId) {
+  if (!instances[instanceId]) {
+    const instanceConfig = await Instance.findByPk(instanceId);
+    if (!instanceConfig) {
+      throw new Error(`Instance with ID ${instanceId} not found`);
+    }
+
+    let userSlots = [];
+    for (let i = 0; i < instanceConfig.settings.slots; i++) {
+      userSlots.push({ slot_index: i + 1, client: null });
+    }
+
+    instances[instanceId] = {
+      ...instanceConfig.dataValues,
+      rooms: {
+        users: `users:${instanceConfig.id}`,
+        control: `control:${instanceConfig.id}`,
+      },
+      userSlots: userSlots,
+      users: [],
+      lastTriedSlotIndex: 0,
+    };
   }
-  return {
-    ...instanceConfig,
-    rooms: {
-      users: `users:${instanceConfig.id}`,
-      control: `control:${instanceConfig.id}`,
-    },
-    userSlots: userSlots,
-    users: [],
-    lastTriedSlotIndex: 0,
-  };
-});
+  return instances[instanceId];
+}
 
 
-function onOscJoinRequest({ socket, data: room, io }) {
-  const instance = instances.filter((item) => {
-    return item.rooms.control === room;
-  })[0];
+async function onOscJoinRequest({ socket, data: room, io }) {
+  const instance = await getInstance(room.split(':')[1]);
 
   if (!instance) {
     console.error("Invalid Room requested", room);
@@ -105,9 +111,11 @@ function onOscJoinRequest({ socket, data: room, io }) {
   io.to(roomTypes.control).emit("OSC_JOINED", newRoomState);
 }
 
-function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
+async function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
   const { room, wantsSlot } = data;
-  const instance = instances.filter((item) => item.rooms.users === room)[0];
+  // const instance = instances.filter((item) => item.rooms.users === room)[0];
+  const instance = await getInstance(room.split(':')[1]);
+
 
   if (!instance) {
     console.error("Invalid Room", room);
@@ -187,8 +195,9 @@ function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) {
   });
 }
 
-function onDisconnect({ socket, assignedClientSlotIndex, io }) {
-  const instance = instances.filter((item) => item.id === socket.instanceId)[0];
+async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
+  // const instance = instances.filter((item) => item.id === socket.instanceId)[0];
+  const instance = await getInstance(socket.instanceId);
 
   if (!instance) {
     console.error("disconnect::Invalid Instance", socket.instanceId);
@@ -261,7 +270,7 @@ function resetUsersRoom() {
  * - @todo rework this data argument. Previous implementation had { data, room },
  *         name would be better if it was { game, room }
  */
-function onOscHostMessage({ socket, data: { data: game, room }, io }) {
+async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
   const processing_start = new Date().getTime();
   
   if (
@@ -282,7 +291,9 @@ function onOscHostMessage({ socket, data: { data: game, room }, io }) {
    * is emitting an empty message when a user joins. This is likely
    * due to some specific use case for stateful client UI.
    */
-  const instance = instances.filter((item) => item.rooms.control === room)[0];
+  // const instance = instances.filter((item) => item.rooms.control === room)[0];
+  const instance = await getInstance(room.split(':')[1]);
+
   if (!instance) {
     console.error("OSC_HOST_MESSAGE::Invalid Instance");
     return false;
@@ -315,10 +326,11 @@ function onOscHostMessage({ socket, data: { data: game, room }, io }) {
  * @param {number} params.assignedClientSlotIndex - The index of the client slot assigned.
  * @param {Server} params.io - The Socket.IO server instance.
  */
-function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
+async function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
   console.log('onOscCtrlMessage', io.instanceId)
   const processing_start = new Date().getTime();
-  const instance = instances.filter((item) => item.id === socket.instanceId)[0];
+  // const instance = instances.filter((item) => item.id === socket.instanceId)[0];
+  const instance = await getInstance(socket.instanceId);
   if (!instance) {
     console.error("OSC_CTRL_MESSAGE::Invalid Instance");
     return false;

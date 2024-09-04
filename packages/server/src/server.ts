@@ -77,27 +77,27 @@ io.on("connection", (socket) => {
   // assignedClientSlotIndex is tied to the socket state.
   // should do via session cookie?
   let assignedClientSlotIndex = false;
-  socket.on("OSC_JOIN_REQUEST", (data) =>
-    onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
+  socket.on("OSC_JOIN_REQUEST", async (data) =>
+    await onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
   );
-  socket.on("OSC_HOST_MESSAGE", (data) =>
-    onOscHostMessage({
+  socket.on("OSC_HOST_MESSAGE", async (data) =>
+    await onOscHostMessage({
       socket,
       data,
       io,
     })
   );
 
-  socket.on("OSC_CTRL_MESSAGE", (data) =>
-    onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
+  socket.on("OSC_CTRL_MESSAGE", async (data) =>
+    await onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
   );
 
-  socket.on("USER_JOIN_REQUEST", (data) =>
-   assignedClientSlotIndex = onUserJoinRequest({ socket, data, assignedClientSlotIndex, io })
-  );
+  socket.on("USER_JOIN_REQUEST", async (data) => {
+    assignedClientSlotIndex = await onUserJoinRequest({ socket, data, assignedClientSlotIndex, io });
+  });
 
-  socket.on("disconnect", () =>
-    onDisconnect({ socket, assignedClientSlotIndex, io })
+  socket.on("disconnect", async () =>
+    await onDisconnect({ socket, assignedClientSlotIndex, io })
   );
 
   socket.on("connect_failed", (err) => {
