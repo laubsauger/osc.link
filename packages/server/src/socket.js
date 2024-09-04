@@ -12,10 +12,50 @@ const roomTypes = {
   control: "control",
 };
 
+/**
+ * Goal: Use DB instances rather than this static config.
+ */
 const instancesConfig = JSON.parse(
   fs.readFileSync(path.join(__dirname, "dummy/instances.json"), "utf-8")
 );
 
+/**
+ * instances is the following object. 
+ * {
+ *  id, - assigned by DB
+ *  name, - assigned on creation
+ *  description, - assigned on creation
+ *  settings, - defined in UI
+ *  rooms { - defined dynamically based on id
+ *    users,
+ *    control
+ *  }
+ *  userSlots [ - TODO - this is assigned dynamically, based on settings.slots. Should be stored in DB?
+ *    { slot_index, client } - client is socket id
+ *  ],
+ *  users: [] - socket id, assigne by socket.io
+ *  lastTriedSlotIndex, - used to keep track of user slots - sequentially ordered.
+ * }
+ */
+
+/**
+ * instance Slots
+ * - There are X amount of slots
+ * - why are they prepopulated?
+ * - I guess Slot index matters. What if there was a different identifier than pure index?
+ * - people can request to pick a slot
+ * - rewrite this later
+ * - do we store in DB, or in memory?
+ *  - if in DB, we can query
+ *  - if in memory, can still query, but perhaps will be less debuggable?
+ * 
+ * I think, keep in memory for now. We don't need to do this mapping, only check upon join.
+ * We could have occasional clean up to avoid memory leaks and growing over time.
+ * 
+ * "randomPick": true,
+ * "slotPick": true,
+ * "sequentialPick": false,
+ */
 const instances = instancesConfig.map((instanceConfig) => {
   let userSlots = [];
   for (let i = 0; i < instanceConfig.settings.slots; i++) {
@@ -32,6 +72,7 @@ const instances = instancesConfig.map((instanceConfig) => {
     lastTriedSlotIndex: 0,
   };
 });
+
 
 function onOscJoinRequest({ socket, data: room, io }) {
   const instance = instances.filter((item) => {
