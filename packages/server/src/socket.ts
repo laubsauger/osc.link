@@ -1,3 +1,4 @@
+// @ts-nocheck
 const fs = require("fs");
 const path = require("path");
 const {
@@ -6,6 +7,7 @@ const {
   resetClientSlot,
 } = require("./utils");
 const { Server } = require("socket.io");
+import Instance from './models/Instance';
 
 const roomTypes = {
   users: "users",
@@ -57,6 +59,7 @@ let instances = {};
 
 async function getInstance(instanceId) {
   if (!instances[instanceId]) {
+    console.log('no in memory instance, finding by ', instanceId)
     const instanceConfig = await Instance.findByPk(instanceId);
     if (!instanceConfig) {
       throw new Error(`Instance with ID ${instanceId} not found`);
@@ -197,9 +200,10 @@ async function onUserJoinRequest({ socket, data, assignedClientSlotIndex, io }) 
 
 async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
   // const instance = instances.filter((item) => item.id === socket.instanceId)[0];
-  const instance = await getInstance(socket.instanceId);
-
-  if (!instance) {
+  let instance;
+  try {
+    instance = await getInstance(socket.instanceId);
+  } catch (e) {
     console.error("disconnect::Invalid Instance", socket.instanceId);
     return false;
   }
