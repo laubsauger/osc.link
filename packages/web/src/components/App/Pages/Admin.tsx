@@ -104,7 +104,6 @@ const Admin: React.FC = (props) => {
 
 
   return (
-    // <div>Functional Component for { userStore.name }</div>
     <div>
       Admin Dashboard
       <SignedOut>

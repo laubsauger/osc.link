@@ -12,7 +12,6 @@ import LinkButton from "../LinkButton";
 const SessionList = () => {
   const { socketStore } = useStores();
   const [ isLoadingInstances, setIsLoadingInstances ] = useState(true);
-  console.log(useAuth)
   const { getToken } = useAuth();
 
   useEffect(() => {

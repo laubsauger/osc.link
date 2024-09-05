@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../server"; // Assuming you have an Express app exported from app.ts
+import app from "../server";
 import Instance from "../models/Instance";
 import Admin from "../models/Admin";
 import { ClerkExpressRequireAuth } from "@clerk/clerk-sdk-node";
