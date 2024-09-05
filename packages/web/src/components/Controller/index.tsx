@@ -242,8 +242,6 @@ const Controller = () => {
     setIsAdminMode(!!params.get('admin'))
   }, [location.search]);
 
-  console.log('hello', socketStore)
-
   return (
     <div className='Controller d-flex flex-column ' style={{ height: '100%' }}>
       { !socketStore.currentInstance?.settings?.controls?.eden ? <LogoBackground /> : null }
