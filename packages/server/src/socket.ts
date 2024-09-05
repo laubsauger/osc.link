@@ -289,7 +289,7 @@ async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
     );
     return false;
   }
-
+  console.log(data)
   /**
    * This will fail because packages/electron/public/server.js
    * is emitting an empty message when a user joins. This is likely

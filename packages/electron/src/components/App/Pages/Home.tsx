@@ -4,6 +4,7 @@ import {Card, Col, Form, InputGroup, Row} from "react-bootstrap";
 import SessionList from "../../SessionList";
 import {useStores} from "../../../hooks/useStores";
 import { Link } from 'react-router-dom';
+import AdminLogin from '../AdminLogin';
 
 const Home: React.FC = (props) => {
   const { socketStore } = useStores();
@@ -28,6 +29,7 @@ const Home: React.FC = (props) => {
     <Col className="mt-4">
       <Card>
         <Card.Body className="text-center">
+          <AdminLogin />
           <Card.Title>Select session to join</Card.Title>
           <div>
             <div>Requires proper local setup to connect to your devices via OSC-over-UDP</div>
@@ -68,7 +70,6 @@ const Home: React.FC = (props) => {
               </Form.Group>
             </Col>
           </Row>
-
           <SessionList />
 
         </Card.Body>
