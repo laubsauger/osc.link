@@ -72,42 +72,6 @@ const Controller = () => {
     fetchInstances();
   },[]);
 
-  // useEffect(() => {
-  //   if (!socketStore.availableInstances.length) {
-  //       console.log('setting available instances')
-        
-  //       fetch(`${config.socketServer}/api/instances.json`)
-  //         .then(response => response.json())
-  //         .then(data => {
-  //           socketStore.setAvailableInstances(data);
-  //         }).catch(() => {
-  //         socketStore.setAvailableInstances([]);
-  //       });
-  //   }
-  // }, [ socketStore, socketStore.availableInstances ])
-
-  // useEffect(() => {
-  //   if (!socketStore.availableInstances.length) {
-  //     return;
-  //   }
-
-  //   console.log('has instances', instanceId, socketStore.availableInstances)
-
-  //   // @todo: improve validation to check against instance config from api
-  //   // @todo: add error message and redirect to /join on error
-  //   if (!instanceId || !slotId) {
-  //     // setIsValid(false);
-  //     console.log("setting current instance as undefined")
-  //     socketStore.setCurrentInstance(undefined);
-  //   } else {
-  //     const selectedInstance = socketStore.availableInstances.filter(item => item.id === Number(instanceId))[0];
-  //     // setIsValid(true);
-  //     socketStore.setCurrentInstance(selectedInstance);
-  //     console.log('available instances', socketStore.availableInstances)
-  //     console.log('setting current Instance as', selectedInstance, socketStore.availableInstances)
-  //   }
-  // }, [ instanceId, slotId, socketStore, socketStore.availableInstances ]);
-
   const sendJoinRequest = useCallback(() => {
     if (!socketStore.currentInstance) {
       return;
