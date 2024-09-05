@@ -11,6 +11,7 @@ const SessionList = () => {
   const { socketStore } = useStores();
   const [ isLoadingInstances, setIsLoadingInstances ] = useState(true);
 
+  // todo: Update sessionlist to retrieve from dynamic api
   useEffect(() => {
     setIsLoadingInstances(true);
 

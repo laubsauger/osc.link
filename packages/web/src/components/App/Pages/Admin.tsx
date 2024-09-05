@@ -14,6 +14,7 @@ interface Instance {
   name: string;
   description?: string;
   settings?: object;
+  id: string
 }
 
 const Admin: React.FC = (props) => {
@@ -119,6 +120,7 @@ const Admin: React.FC = (props) => {
           {instances.map((instance) => (
             <div key={instance.id}>
               <h4>{instance.name}</h4>
+              <h6>{instance.id}</h6>
               <button onClick={() => deleteInstance(instance)}>Delete Instance</button>
               <code>{JSON.stringify(instance.settings)}</code>
             </div>

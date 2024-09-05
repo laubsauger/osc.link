@@ -6,6 +6,7 @@ import config from "../../../config";
 import LoadingSpinner from "../../LoadingSpinner";
 import {Instance} from "../../../stores/socketStore";
 import {useStores} from "../../../hooks/useStores";
+import { useAuth } from '@clerk/clerk-react';
 
 const LinkButton = (props:any) => {
   const { path, label, variant, disabled } = props;
@@ -43,18 +44,25 @@ const Join: React.FC = (props) => {
   const [ isLoadingInstances, setIsLoadingInstances ] = useState(true);
   const { socketStore } = useStores();
 
+  const { getToken } = useAuth();
+
   useEffect(() => {
     setIsLoadingInstances(true);
-
-    fetch(`${config.socketServer}/api/instances.json`)
-      .then(response => response.json())
-      .then(data => {
-        socketStore.setAvailableInstances(data);
-        setIsLoadingInstances(false);
-      }).catch(() => {
-        socketStore.setAvailableInstances([]);
-        setIsLoadingInstances(false);
-      });
+    const fetchInstances = async () => {
+      const token = await getToken();
+      fetch(`${import.meta.env.VITE_SERVER_API}/api/instances`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(response => response.json())
+        .then(data => {
+          socketStore.setAvailableInstances(data);
+          setIsLoadingInstances(false);
+        }).catch(() => {
+          socketStore.setAvailableInstances([]);
+          setIsLoadingInstances(false);
+        });
+    }
+    fetchInstances();
   },[ socketStore ]);
 
   return (
