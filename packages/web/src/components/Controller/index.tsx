@@ -15,6 +15,7 @@ import { useWakeLock } from 'react-screen-wake-lock';
 import LogoBackground from '../LogoBackground';
 import CtrlToggle from './CtrlToggle';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '@clerk/clerk-react';
 export type PlayerColor = 'black'|'red'|'green'|'blue'|'yellow';
 
 export const buttonColors: PlayerColor[] = [ 'red', 'green', 'blue', 'yellow' ]
@@ -49,37 +50,27 @@ const Controller = () => {
   const [ firedMouseUp, setFiredMouseUp ] = useState(false);
   const [ alreadyConnected, setAlreadyConnected ] = useState(socketStore.connectionState.connected);
 
+  const { getToken } = useAuth();
+
   useEffect(() => {
-    if (!socketStore.availableInstances.length) {
-        fetch(`${config.socketServer}/api/instances.json`)
-          .then(response => response.json())
-          .then(data => {
-            socketStore.setAvailableInstances(data);
-          }).catch(() => {
-          socketStore.setAvailableInstances([]);
+    // setIsLoadingInstances(true);
+    const fetchInstances = async () => {
+      const token = await getToken();
+      fetch(`${import.meta.env.VITE_SERVER_API}/api/instances/${instanceId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log('success')
+          socketStore.setCurrentInstance(data);
+          // setIsLoadingInstances(false);
+        }).catch(() => {
+          socketStore.setCurrentInstance(undefined);
+          // setIsLoadingInstances(false);
         });
     }
-  }, [ socketStore, socketStore.availableInstances ])
-
-  useEffect(() => {
-    if (!socketStore.availableInstances.length) {
-      return;
-    }
-
-    console.log('has instances', instanceId, socketStore.availableInstances)
-
-    // @todo: improve validation to check against instance config from api
-    // @todo: add error message and redirect to /join on error
-    if (!instanceId || !slotId) {
-      // setIsValid(false);
-      socketStore.setCurrentInstance(undefined);
-    } else {
-      const selectedInstance = socketStore.availableInstances.filter(item => item.id === Number(instanceId))[0];
-      // setIsValid(true);
-      socketStore.setCurrentInstance(selectedInstance);
-      console.log(instanceId, socketStore.availableInstances)
-    }
-  }, [ instanceId, slotId, socketStore, socketStore.availableInstances ]);
+    fetchInstances();
+  },[]);
 
   const sendJoinRequest = useCallback(() => {
     if (!socketStore.currentInstance) {

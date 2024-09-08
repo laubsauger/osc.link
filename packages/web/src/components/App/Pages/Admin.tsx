@@ -14,6 +14,7 @@ interface Instance {
   name: string;
   description?: string;
   settings?: object;
+  id: string
 }
 
 const Admin: React.FC = (props) => {
@@ -103,7 +104,6 @@ const Admin: React.FC = (props) => {
 
 
   return (
-    // <div>Functional Component for { userStore.name }</div>
     <div>
       Admin Dashboard
       <SignedOut>
@@ -119,11 +119,15 @@ const Admin: React.FC = (props) => {
           {instances.map((instance) => (
             <div key={instance.id}>
               <h4>{instance.name}</h4>
+              <h5><a href={`/session/${instance.id}`}>
+              {`${window.location.origin}/session/${instance.id}`}
+              </a></h5>
               <button onClick={() => deleteInstance(instance)}>Delete Instance</button>
               <code>{JSON.stringify(instance.settings)}</code>
             </div>
           ))}
-          <h3>Available Instances</h3>
+          <h3>Available Instance Templates</h3>
+          <p>Select one to add to your account.</p>
           {availableInstances.map((instance) => (
             <div key={instance.name}>
               <h4>{instance.name}</h4>

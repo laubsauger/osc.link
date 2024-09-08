@@ -20,7 +20,7 @@ export type RoomState = {
 }
 
 export type Instance = {
-  id: number,
+  id: string,
   name: string,
   description: string,
   settings: {

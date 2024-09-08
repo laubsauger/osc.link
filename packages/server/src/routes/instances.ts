@@ -6,7 +6,6 @@ import Instance from "../models/Instance";
 import Admin from "../models/Admin";
 import ensureUserInDatabase from '../middleware/adminMiddleware';
 
-
 export interface CustomRequest extends ExpressRequest {
   auth: { userId: string };
   body: {
@@ -16,11 +15,9 @@ export interface CustomRequest extends ExpressRequest {
   };
 }
 
-
 const router = Router();
 
 type CustomRequestHandler = (req: CustomRequest, res: Response, next: NextFunction) => Promise<void>;
-
 
 router.post(
   "/",
@@ -31,10 +28,11 @@ router.post(
     const { userId } = customReq.auth;
     const { name, description, settings } = customReq.body;
 
+    
     try {
       const admin = await Admin.findByPk(userId);
       if (!admin) {
-        return res.status(404).json({ error: "User not found" });
+        return res.status(404).json({ error: "Admin not found" });
       }
       const instance = await admin.createInstance({ name, description, settings });
       res.status(201).json(instance);

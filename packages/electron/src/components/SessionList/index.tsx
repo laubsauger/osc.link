@@ -2,6 +2,8 @@ import React, {useEffect, useState} from 'react';
 // import './styles.scss';
 import {Accordion, Button, Col, Row} from "react-bootstrap";
 import {observer} from "mobx-react-lite";
+import { useAuth } from '@clerk/clerk-react';
+
 import {useStores} from "../../hooks/useStores";
 import LoadingSpinner from "../LoadingSpinner";
 import config from "../../config";
@@ -10,19 +12,25 @@ import LinkButton from "../LinkButton";
 const SessionList = () => {
   const { socketStore } = useStores();
   const [ isLoadingInstances, setIsLoadingInstances ] = useState(true);
+  const { getToken } = useAuth();
 
   useEffect(() => {
     setIsLoadingInstances(true);
-
-    fetch(`${config.webSocketHost}/api/instances.json`)
-      .then(response => response.json())
-      .then(data => {
-        socketStore.setAvailableInstances(data);
-        setIsLoadingInstances(false);
-      }).catch(() => {
-        socketStore.setAvailableInstances([]);
-        setIsLoadingInstances(false);
-      });
+    const fetchInstances = async () => {
+      const token = await getToken();
+      fetch(`${config.webSocketHost}/api/instances`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then(response => response.json())
+        .then(data => {
+          socketStore.setAvailableInstances(data);
+          setIsLoadingInstances(false);
+        }).catch(() => {
+          socketStore.setAvailableInstances([]);
+          setIsLoadingInstances(false);
+        });
+    }
+    fetchInstances();
   },[ socketStore ]);
 
   return (

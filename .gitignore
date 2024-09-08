@@ -120,4 +120,4 @@ build/Release
 Thumbs.db
 
 # Database
-database.sqlite
+*.sqlite

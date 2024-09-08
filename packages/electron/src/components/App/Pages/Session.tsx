@@ -41,7 +41,7 @@ const Session: React.FC = (props) => {
       <Row>
         { instanceId && socketStore.availableInstances.length &&
           <Col xs={12} md={6}>
-            <SessionInfo currentSession={socketStore.availableInstances.filter(item => item.id === Number(instanceId))[0]}/>
+            <SessionInfo currentSession={socketStore.availableInstances.filter(item => item.id === instanceId)[0]}/>
           </Col>
         }
 
