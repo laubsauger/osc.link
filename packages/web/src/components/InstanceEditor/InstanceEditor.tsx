@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./styles.scss";
 import { observer } from "mobx-react-lite";
 import { useStores } from "../../hooks/useStores";
 import { useAuth } from "@clerk/clerk-react";
+import { Button, Form } from "react-bootstrap";
 
 type Props = {
   size?: string;
@@ -13,8 +14,17 @@ const InstanceEditor = (props: Props) => {
 
   const { socketStore, gameStore } = useStores();
   const { getToken } = useAuth();
-
+  
   const instance = socketStore.currentInstance;
+  
+  const [ ogSettings, setOGSettings ] = useState(JSON.stringify(instance));
+  useEffect(() => {
+    console.log('instance', instance)
+    if (!ogSettings) {
+      setOGSettings(JSON.stringify(instance));
+    }
+  }, [instance]);
+
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -62,6 +72,7 @@ const InstanceEditor = (props: Props) => {
       if (!response.ok) {
         throw new Error("Failed to update instance");
       }
+      setOGSettings(JSON.stringify(instance));
       alert("Instance updated successfully");
     } catch (error) {
       console.error("Error updating instance:", error);
@@ -105,45 +116,55 @@ const InstanceEditor = (props: Props) => {
     socketStore.setCurrentInstance(updatedInstance);
   };
 
+  const hasChanges = ogSettings !== JSON.stringify(instance);
   return (
     <div className="InstanceEditor">
-      <h1 style={{ color: "white" }}>Edit Instance</h1>
+      <h1>Edit Instance</h1>
       {/* 
         Todo: Edit everything about the instance.
         Name, settings, description, etc.
       */}
       <form onSubmit={handleSubmit}>
-        <label>
-          Name:
-          <input
+        <Button 
+          type="submit" 
+          variant="primary" 
+          disabled={!hasChanges}
+        >
+          {hasChanges ? "Save Changes" : "No Changes"}
+        </Button>
+        <Form.Group controlId="formName">
+          <Form.Label>Name:</Form.Label>
+          <Form.Control
             type="text"
             name="name"
             value={instance?.name}
             onChange={handleChange}
           />
-        </label>
-        <label>
-          Description:
-          <textarea
+        </Form.Group>
+        <Form.Group controlId="formDescription">
+          <Form.Label>Description:</Form.Label>
+          <Form.Control
+            as="textarea"
             name="description"
             value={instance?.description}
             onChange={handleChange}
           />
-        </label>
+        </Form.Group>
         {instance?.settings.slots !== undefined && (
-          <label>
-            Slots:
-            <input
+          <Form.Group controlId="formSlots">
+            <Form.Label>Slots:</Form.Label>
+            <Form.Control
               type="number"
               name="slots"
               value={instance?.settings.slots}
               onChange={handleSettingsChange}
             />
-          </label>
+          </Form.Group>
         )}
-        <label>
-          Pick Type:
-          <select
+        <Form.Group controlId="formPickType">
+          <Form.Label>Pick Type:</Form.Label>
+          <Form.Control
+            as="select"
             name="pickType"
             value={
               instance?.settings.randomPick
@@ -159,32 +180,32 @@ const InstanceEditor = (props: Props) => {
             <option value="randomPick">Random Pick</option>
             <option value="slotPick">Slot Pick</option>
             <option value="sequentialPick">Sequential Pick</option>
-          </select>
-        </label>
+          </Form.Control>
+        </Form.Group>
         {instance?.settings.layout?.wrapButtons !== undefined && (
-          <label>
-            Wrap Buttons:
-            <input
+          <Form.Group controlId="formWrapButtons">
+            <Form.Check
               type="checkbox"
               name="wrapButtons"
+              label="Wrap Buttons"
               checked={instance?.settings.layout.wrapButtons || false}
               onChange={handleSettingsChange}
             />
-          </label>
+          </Form.Group>
         )}
         {instance?.settings.controls && (
-          <label>
-            Controls (JSON):
-            <textarea
+          <Form.Group controlId="formControls">
+            <Form.Label>Controls (JSON):</Form.Label>
+            <Form.Control
+              as="textarea"
               name="controls"
               value={JSON.stringify(instance.settings.controls, null, 2)}
               onChange={handleControlsChange}
               rows={10}
               cols={50}
             />
-          </label>
+          </Form.Group>
         )}
-        <button type="submit">Save Changes</button>
       </form>
       {instance && (
         <div>

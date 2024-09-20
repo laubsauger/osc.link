@@ -244,7 +244,7 @@ const Controller = () => {
   }, [location.search]);
 
   return (
-    <div className='Controller d-flex flex-column ' style={{ height: '100%' }}>
+    <div className='Controller d-flex flex-column w-100 h-100' style={{ height: '100%', width: '100%' }}>
       { !socketStore.currentInstance?.settings?.controls?.eden ? <LogoBackground /> : null }
       { socketStore.connectionState.joined &&
         <React.Fragment>
