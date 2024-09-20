@@ -63,7 +63,7 @@ const AppRoutes = () => {
           }
         />
         <Route
-          path="/config"
+          path="/admin"
           element={
             <Suspense fallback={<LoadingSpinner />}>
               <AdminPage />
