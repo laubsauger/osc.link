@@ -105,25 +105,29 @@ const Admin: React.FC = (props) => {
 
   return (
     <div>
-      Admin Dashboard
+      <h1>Admin Dashboard</h1>
       <SignedOut>
         <SignInButton />
       </SignedOut>
       <SignedIn>
         <UserButton />
         <div>
-          <h3>Added Instances</h3>
+          <h3>Your Instances</h3>
           {instances.length === 0 ? (
             <p>No instances</p>
           ): null}
           {instances.map((instance) => (
-            <div key={instance.id}>
+            <div key={instance.id} style={{
+              display: 'flex',
+              gap: 20
+            }}>
               <h4>{instance.name}</h4>
               <h5><a href={`/session/${instance.id}`}>
               {`${window.location.origin}/session/${instance.id}`}
               </a></h5>
+              <a href={`${window.location.origin}/session/edit/${instance.id}`}>Edit Instance</a>
               <button onClick={() => deleteInstance(instance)}>Delete Instance</button>
-              <code>{JSON.stringify(instance.settings)}</code>
+              {/* <code>{JSON.stringify(instance.settings)}</code> */}
             </div>
           ))}
           <h3>Available Instance Templates</h3>

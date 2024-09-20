@@ -45,6 +45,7 @@ const Controller = () => {
   // const { pathname, search } = useLocation();
   const socket = useSocket();
   const { socketStore, gameStore } = useStores();
+  // todo: slotId should be coming from search
   const { instanceId, slotId } = useParams();
 
   const [ firedMouseUp, setFiredMouseUp ] = useState(false);
