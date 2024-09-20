@@ -12,6 +12,7 @@ import App from "./components/App";
 import { RootStore } from "./stores/rootStore";
 // @ts-ignore
 import reportWebVitals from "./reportWebVitals";
+import { dark } from "@clerk/themes";
 
 /**
  * Setup user auth
@@ -29,7 +30,9 @@ export default function Index() {
       <SensorsProvider multiplier={3} useGravity={false}>
         <StoreProvider store={new RootStore()}>
           <BrowserRouter>
-            <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+            <ClerkProvider appearance={{
+              baseTheme: dark
+            }} publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
               <App />
             </ClerkProvider>
           </BrowserRouter>

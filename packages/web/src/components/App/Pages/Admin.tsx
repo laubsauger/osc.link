@@ -83,6 +83,12 @@ const Admin: React.FC = (props) => {
   };
 
   const deleteInstance = async (instance: Instance) => {
+    const confirmation = confirm(
+      `Are you sure you want to delete ${instance.name}? ${instance.id}`
+    );
+    if (!confirmation) {
+      return;
+    }
     try {
       const token = await getToken();
       const response = await fetch(
@@ -116,7 +122,11 @@ const Admin: React.FC = (props) => {
         <SignInButton />
       </SignedOut>
       <SignedIn>
-        <UserButton />
+        <Card>
+          <Card.Body>
+            <UserButton showName baseTheme={['Dark']}/>
+          </Card.Body>
+        </Card>
         <div>
           <h3>Your Instances</h3>
           {instances.length === 0 ? <p>No instances</p> : null}
@@ -153,7 +163,11 @@ const Admin: React.FC = (props) => {
             <p>Select one to add to your account.</p>
             <ListGroup>
               {availableInstances.map((instance, index) => (
-                <ListGroup.Item variant={index % 2 === 0 ? 'light' : ''} key={instance.name}>
+                <ListGroup.Item
+                  action
+                  variant={index % 2 === 0 ? "light" : ""}
+                  key={instance.name}
+                >
                   <Stack direction="horizontal">
                     <Card.Title className="me-auto">{instance.name}</Card.Title>
                     <Button onClick={() => addInstanceToUser(instance)}>
