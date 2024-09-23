@@ -116,21 +116,23 @@ const Admin: React.FC = (props) => {
   };
 
   return (
-    <div>
+    <div className="pt-3">
       <h1>Admin Dashboard</h1>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
+      <Card className="mb-4">
+        <Card.Body>
+          <SignedIn>
+            <UserButton showName baseTheme={["Dark"]} />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
+        </Card.Body>
+      </Card>
       <SignedIn>
-        <Card>
-          <Card.Body>
-            <UserButton showName baseTheme={['Dark']}/>
-          </Card.Body>
-        </Card>
         <div>
           <h3>Your Instances</h3>
           {instances.length === 0 ? <p>No instances</p> : null}
-          <Stack gap={3}>
+          <Stack className="mb-4" gap={3}>
             {instances.map((instance) => (
               <Card key={instance.id}>
                 <Card.Header>
@@ -158,7 +160,7 @@ const Admin: React.FC = (props) => {
               </Card>
             ))}
           </Stack>
-          <Stack>
+          <Stack className="mb-4">
             <h3>Available Instance Templates</h3>
             <p>Select one to add to your account.</p>
             <ListGroup>
