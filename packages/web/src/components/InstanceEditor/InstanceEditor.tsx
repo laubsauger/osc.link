@@ -25,6 +25,15 @@ const InstanceEditor = (props: Props) => {
     }
   }, [instance]);
 
+  const [ isValidControlsJSON, setIsValidControlsJSON ] = useState(true);
+
+  const [ draftControlsJSON, setDraftControlsJSON ] = useState(JSON.stringify(instance?.settings.controls, null, 2));
+  // not available on initial load
+  useEffect(() => {
+    if (!draftControlsJSON) {
+      setDraftControlsJSON(JSON.stringify(instance?.settings.controls, null, 2));
+    }
+  }, [instance]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -55,6 +64,10 @@ const InstanceEditor = (props: Props) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = await getToken();
+    if (!isValidControlsJSON) {
+      alert('Controls JSON is invalid, fix the formatting before saving.');
+      return;
+    }
     try {
       // @ts-ignore
       const response = await fetch(
@@ -96,24 +109,31 @@ const InstanceEditor = (props: Props) => {
 
   const handleControlsChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const { value } = e.target;
-    let updatedControls;
+    let updatedControls, validJSON = true;
     try {
       updatedControls = JSON.parse(value);
+      setIsValidControlsJSON(true)
     } catch (error) {
       console.error("Invalid JSON format:", error);
-      alert("Invalid JSON format");
-      return;
+      // alert("Invalid JSON format");
+      setIsValidControlsJSON(false);
+      validJSON = false;
     }
 
-    const updatedInstance = {
-      ...instance,
-      settings: {
-        ...instance.settings,
-        controls: updatedControls,
-      },
-    };
-    // @ts-ignore
-    socketStore.setCurrentInstance(updatedInstance);
+    setDraftControlsJSON(value);
+
+    // update preview only when valid json
+    if (validJSON) {
+      const updatedInstance = {
+        ...instance,
+        settings: {
+          ...instance.settings,
+          controls: updatedControls,
+        },
+      };
+      // @ts-ignore
+      socketStore.setCurrentInstance(updatedInstance);
+    }
   };
 
   const hasChanges = ogSettings !== JSON.stringify(instance);
@@ -199,7 +219,7 @@ const InstanceEditor = (props: Props) => {
             <Form.Control
               as="textarea"
               name="controls"
-              value={JSON.stringify(instance.settings.controls, null, 2)}
+              value={draftControlsJSON}
               onChange={handleControlsChange}
               rows={10}
               cols={50}
