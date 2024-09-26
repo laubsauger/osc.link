@@ -294,17 +294,18 @@ async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
     );
     return false;
   }
-  console.log(data);
   /**
    * This will fail because packages/electron/public/server.js
    * is emitting an empty message when a user joins. This is likely
    * due to some specific use case for stateful client UI.
    */
   // const instance = instances.filter((item) => item.rooms.control === room)[0];
-  const instance = await getInstance(room.split(":")[1]);
-
-  if (!instance) {
-    console.error("OSC_HOST_MESSAGE::Invalid Instance");
+  const roomInstanceId = socket.room.split(":")[1];
+  let instance;
+  try {
+    instance = await getInstance(roomInstanceId);
+  } catch (e) {
+    console.error("OSC_HOST_MESSAGE::Invalid Instance", e);
     return false;
   }
 

@@ -9,12 +9,14 @@ import {
   UserButton,
   useAuth,
 } from "@clerk/clerk-react";
+import { Button, Card, Container, ListGroup, Stack } from "react-bootstrap";
+import { Link } from "react-router-dom";
 
 interface Instance {
   name: string;
   description?: string;
   settings?: object;
-  id: string
+  id: string;
 }
 
 const Admin: React.FC = (props) => {
@@ -81,18 +83,29 @@ const Admin: React.FC = (props) => {
   };
 
   const deleteInstance = async (instance: Instance) => {
+    const confirmation = confirm(
+      `Are you sure you want to delete ${instance.name}? ${instance.id}`
+    );
+    if (!confirmation) {
+      return;
+    }
     try {
       const token = await getToken();
-      const response = await fetch(`http://localhost:8080/api/instances/${instance.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `http://localhost:8080/api/instances/${instance.id}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (response.ok) {
-        const updatedInstances = instances.filter(inst => inst.id !== instance.id);
+        const updatedInstances = instances.filter(
+          (inst) => inst.id !== instance.id
+        );
         setInstances(updatedInstances);
       } else {
         console.error("Error deleting instance:", await response.json());
@@ -102,38 +115,71 @@ const Admin: React.FC = (props) => {
     }
   };
 
-
   return (
-    <div>
-      Admin Dashboard
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
+    <div className="pt-3">
+      <h1>Admin Dashboard</h1>
+      <Card className="mb-4">
+        <Card.Body>
+          <SignedIn>
+            <UserButton showName baseTheme={["Dark"]} />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton />
+          </SignedOut>
+        </Card.Body>
+      </Card>
       <SignedIn>
-        <UserButton />
         <div>
-          <h3>Added Instances</h3>
-          {instances.length === 0 ? (
-            <p>No instances</p>
-          ): null}
-          {instances.map((instance) => (
-            <div key={instance.id}>
-              <h4>{instance.name}</h4>
-              <h5><a href={`/session/${instance.id}`}>
-              {`${window.location.origin}/session/${instance.id}`}
-              </a></h5>
-              <button onClick={() => deleteInstance(instance)}>Delete Instance</button>
-              <code>{JSON.stringify(instance.settings)}</code>
-            </div>
-          ))}
-          <h3>Available Instance Templates</h3>
-          <p>Select one to add to your account.</p>
-          {availableInstances.map((instance) => (
-            <div key={instance.name}>
-              <h4>{instance.name}</h4>
-              <button onClick={() => addInstanceToUser(instance)}>Add to My Account</button>
-            </div>
-          ))}
+          <h3>Your Instances</h3>
+          {instances.length === 0 ? <p>No instances</p> : null}
+          <Stack className="mb-4" gap={3}>
+            {instances.map((instance) => (
+              <Card key={instance.id}>
+                <Card.Header>
+                  <Card.Title>{instance.name}</Card.Title>
+                  <Card.Subtitle>
+                    <a href={`/session/${instance.id}`}>
+                      {`${window.location.origin}/session/${instance.id}`}
+                    </a>
+                  </Card.Subtitle>
+                </Card.Header>
+                <Card.Footer>
+                  <Card.Link
+                    as={Link}
+                    to={`${window.location.origin}/session/edit/${instance.id}`}
+                  >
+                    Edit Instance
+                  </Card.Link>
+                  <Card.Link
+                    style={{ cursor: "pointer" }}
+                    onClick={() => deleteInstance(instance)}
+                  >
+                    Delete Instance
+                  </Card.Link>
+                </Card.Footer>
+              </Card>
+            ))}
+          </Stack>
+          <Stack className="mb-4">
+            <h3>Available Instance Templates</h3>
+            <p>Select one to add to your account.</p>
+            <ListGroup>
+              {availableInstances.map((instance, index) => (
+                <ListGroup.Item
+                  action
+                  variant={index % 2 === 0 ? "light" : ""}
+                  key={instance.name}
+                >
+                  <Stack direction="horizontal">
+                    <Card.Title className="me-auto">{instance.name}</Card.Title>
+                    <Button onClick={() => addInstanceToUser(instance)}>
+                      Create Instance
+                    </Button>
+                  </Stack>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
+          </Stack>
         </div>
       </SignedIn>
       <div></div>

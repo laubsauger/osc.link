@@ -13,6 +13,7 @@
     "build": "npm run build --workspace osc.link-electron"
   },
   "dependencies": {
+    "@clerk/themes": "^2.1.30",
     "dotenv": "^16.4.5",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

@@ -1,3 +1,7 @@
+const getRandomArrayElement = (arr) => {
+  return arr[Math.floor(random(1, arr.length))-1];
+}
+
 function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
     console.log('requested slot index')
   // override requested slot and assign new client id to it
@@ -43,7 +47,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
   // pick random free slot
   const nextFreeSlotIndex = instance.settings.randomPick
     ? getRandomArrayElement(freeSlotsExcludingLastTried).slot_index
-    : freeSlotsExcludingLastTried[0].slot_index;
+    : freeSlotsExcludingLastTried?.[0]?.slot_index ?? 0;
 
   // assign client id to it
   instance.userSlots = instance.userSlots.map((slot) => {

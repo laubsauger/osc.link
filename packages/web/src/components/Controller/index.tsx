@@ -45,6 +45,7 @@ const Controller = () => {
   // const { pathname, search } = useLocation();
   const socket = useSocket();
   const { socketStore, gameStore } = useStores();
+  // todo: slotId should be coming from search
   const { instanceId, slotId } = useParams();
 
   const [ firedMouseUp, setFiredMouseUp ] = useState(false);
@@ -243,7 +244,7 @@ const Controller = () => {
   }, [location.search]);
 
   return (
-    <div className='Controller d-flex flex-column ' style={{ height: '100%' }}>
+    <div className='Controller d-flex flex-column w-100 h-100' style={{ height: '100%', width: '100%' }}>
       { !socketStore.currentInstance?.settings?.controls?.eden ? <LogoBackground /> : null }
       { socketStore.connectionState.joined &&
         <React.Fragment>
