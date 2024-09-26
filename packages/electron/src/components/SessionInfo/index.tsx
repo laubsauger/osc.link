@@ -27,13 +27,11 @@ const SessionInfo = (props:any) => {
       </Col>
       <Col lg={6} md={6}>
         <h6 className="text-muted">Controls</h6>
-        <div>
-          { Object.entries(currentSession.settings.controls).map(([key, val]) =>
-            <div key={ key }>
-              <div>{ key }: {JSON.stringify(val)}</div>
-            </div>
-          )}
-        </div>
+        <pre style={{
+          overflowY: 'auto',
+          height: 300,
+          resize: 'both'
+        }}>{JSON.stringify(currentSession.settings.controls, null, 2)}</pre>
       </Col>
     </Row>
   )

@@ -7,6 +7,7 @@ import {Button, Col, Container, Row} from "react-bootstrap";
 import SessionLog from "../../SessionLog";
 import SessionState from "../../SessionState";
 import LinkButton from '../../LinkButton';
+import OSCPorts from 'src/components/OSCPorts';
 
 const Session: React.FC = (props) => {
   const navigate = useNavigate();
@@ -36,9 +37,17 @@ const Session: React.FC = (props) => {
     navigate('/');
   }
 
+  const onBtnReconnectClick = () => {
+    //@ts-ignore
+    window.electronAPI.serverStop();
+    //@ts-ignore
+    window.electronAPI.serverStart(instanceId, socketStore.oscLocalPort, socketStore.oscRemotePort);
+  }
+
   return (
     <div className="Session mt-4">
-      <Row>
+      <OSCPorts />
+      <Row className="mt-3">
         { instanceId && socketStore.availableInstances.length &&
           <Col xs={12} md={6}>
             <SessionInfo currentSession={socketStore.availableInstances.filter(item => item.id === instanceId)[0]}/>
@@ -57,7 +66,7 @@ const Session: React.FC = (props) => {
         </Col>
       </Row>
 
-      {/*<LinkButton path={`/session/${socketStore.currentInstance?.id}`} label={'Reconnect'} variant={'outline-warning'}/>*/}
+      {/* <LinkButton path={`/session/${instanceId}`} label={'Reconnect'} variant={'outline-warning'}/> */}
     </div>
   )
 };

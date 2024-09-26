@@ -299,10 +299,9 @@ async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
    * is emitting an empty message when a user joins. This is likely
    * due to some specific use case for stateful client UI.
    */
-  // const instance = instances.filter((item) => item.rooms.control === room)[0];
-  const roomInstanceId = socket.room.split(":")[1];
   let instance;
   try {
+    const roomInstanceId = socket.room.split(":")[1];
     instance = await getInstance(roomInstanceId);
   } catch (e) {
     console.error("OSC_HOST_MESSAGE::Invalid Instance", e);
