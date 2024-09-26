@@ -9,8 +9,16 @@ import {
   UserButton,
   useAuth,
 } from "@clerk/clerk-react";
-import { Button, Card, Container, ListGroup, Stack } from "react-bootstrap";
+import {
+  Accordion,
+  Button,
+  Card,
+  Container,
+  ListGroup,
+  Stack,
+} from "react-bootstrap";
 import { Link } from "react-router-dom";
+import Join from "./Join";
 
 interface Instance {
   name: string;
@@ -132,57 +140,37 @@ const Admin: React.FC = (props) => {
         <div>
           <h3>Your Instances</h3>
           {instances.length === 0 ? <p>No instances</p> : null}
-          <Stack className="mb-4" gap={3}>
-            {instances.map((instance) => (
-              <Card key={instance.id}>
-                <Card.Header>
-                  <Card.Title>{instance.name}</Card.Title>
-                  <Card.Subtitle>
-                    <a href={`/session/${instance.id}`}>
-                      {`${window.location.origin}/session/${instance.id}`}
-                    </a>
-                  </Card.Subtitle>
-                </Card.Header>
-                <Card.Footer>
-                  <Card.Link
-                    as={Link}
-                    to={`${window.location.origin}/session/edit/${instance.id}`}
+          <div className="mb-4">
+            <Join deleteInstance={deleteInstance} instances={instances} />
+          </div>
+          <Accordion className="mb-4">
+            <Accordion.Header>
+              Available Instance Templates
+            </Accordion.Header>
+            <Accordion.Body>
+              <p>Select one to add to your account.</p>
+              <ListGroup>
+                {availableInstances.map((instance, index) => (
+                  <ListGroup.Item
+                    action
+                    variant={index % 2 === 0 ? "light" : ""}
+                    key={instance.name}
                   >
-                    Edit Instance
-                  </Card.Link>
-                  <Card.Link
-                    style={{ cursor: "pointer" }}
-                    onClick={() => deleteInstance(instance)}
-                  >
-                    Delete Instance
-                  </Card.Link>
-                </Card.Footer>
-              </Card>
-            ))}
-          </Stack>
-          <Stack className="mb-4">
-            <h3>Available Instance Templates</h3>
-            <p>Select one to add to your account.</p>
-            <ListGroup>
-              {availableInstances.map((instance, index) => (
-                <ListGroup.Item
-                  action
-                  variant={index % 2 === 0 ? "light" : ""}
-                  key={instance.name}
-                >
-                  <Stack direction="horizontal">
-                    <Card.Title className="me-auto">{instance.name}</Card.Title>
-                    <Button onClick={() => addInstanceToUser(instance)}>
-                      Create Instance
-                    </Button>
-                  </Stack>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Stack>
+                    <Stack direction="horizontal">
+                      <Card.Title className="me-auto">
+                        {instance.name}
+                      </Card.Title>
+                      <Button onClick={() => addInstanceToUser(instance)}>
+                        Create Instance
+                      </Button>
+                    </Stack>
+                  </ListGroup.Item>
+                ))}
+              </ListGroup>
+            </Accordion.Body>
+          </Accordion>
         </div>
       </SignedIn>
-      <div></div>
     </div>
   );
 };
