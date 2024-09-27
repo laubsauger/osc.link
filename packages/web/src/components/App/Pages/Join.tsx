@@ -47,14 +47,20 @@ const SlotButtons = (instance: Instance) => {
   return content;
 };
 
-const Join: React.FC = (props) => {
+interface JoinProps {
+  instances: Instance[];
+  isLoadingInstances: boolean;
+  deleteInstance: (instance: Instance) => void;
+}
+
+const Join: React.FC<JoinProps> = (props) => {
   const { instances, isLoadingInstances } = props;
   return (
     <Col>
       <div>
         {isLoadingInstances && <LoadingSpinner size="small" />}
         {!isLoadingInstances && instances.length ? (
-          <Accordion defaultActiveKey={instances[0].id}>
+          <Accordion>
             {instances.map((instance) => (
               <Accordion.Item key={instance.id} eventKey={String(instance.id)}>
                 <Accordion.Header>{instance.name}</Accordion.Header>
@@ -145,7 +151,18 @@ const Join: React.FC = (props) => {
                         )}
                       </div>
                     </Col>
-
+                  </Row>
+                  <Row>
+                    <Col lg={6} md={12} className="mb-3">
+                      <h6 className="text-muted">Date Created</h6>
+                      <div>{new Date(instance.createdAt).toLocaleString()}</div>
+                    </Col>
+                    <Col lg={3} xs={6} className="mb-3">
+                      <h6 className="text-muted">Last Updated</h6>
+                      <div>{new Date(instance.updatedAt).toLocaleString()}</div>
+                    </Col>
+                  </Row>
+                  <Row>
                     <div>
                       <hr />
                       {instance.settings.slotPick && (
