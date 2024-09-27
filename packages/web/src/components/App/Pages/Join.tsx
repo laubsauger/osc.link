@@ -49,7 +49,6 @@ const SlotButtons = (instance: Instance) => {
 
 const Join: React.FC = (props) => {
   const { instances, isLoadingInstances } = props;
-
   return (
     <Col>
       <div>
@@ -122,24 +121,28 @@ const Join: React.FC = (props) => {
                     <Col lg={3} xs={6}>
                       <h6 className="text-muted">Controls</h6>
                       <div className="small overflow-x-hidden">
-                        {Object.entries(instance.settings.controls)
-                          .filter(([key, val]) => !!val)
-                          .map(([key, val]) => (
-                            <div key={key}>
-                              <div>
-                                <div className="bg-black ps-2 rounded-top">
-                                  {key}
-                                </div>
-                                <div className="bg-black ps-3 text-muted">
-                                  {val.map((v) => (
-                                    <div key={v.id}>
-                                      {v.id}:{v.type}
-                                    </div>
-                                  ))}
+                        {instance?.settings?.controls ? (
+                          Object.entries(instance.settings.controls)
+                            .filter(([key, val]) => !!val)
+                            .map(([key, val]) => (
+                              <div key={key}>
+                                <div>
+                                  <div className="bg-black ps-2 rounded-top">
+                                    {key}
+                                  </div>
+                                  <div className="bg-black ps-3 text-muted">
+                                    {val.map((v) => (
+                                      <div key={v.id}>
+                                        {v.id}:{v.type}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
+                            ))
+                        ) : (
+                          <div>No controls available</div>
+                        )}
                       </div>
                     </Col>
 
