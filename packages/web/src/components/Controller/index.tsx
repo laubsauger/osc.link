@@ -11,7 +11,8 @@ import CtrlText from "./CtrlText";
 import CtrlFader from "./CtrlFader";
 import CtrlEden from './CtrlEden';
 import { Player } from '../../stores/socketStore';
-import { useWakeLock } from 'react-screen-wake-lock';
+import { useWakeLock } from '../../hooks/useWakeLock';
+import { useSocketHandlers } from './useSocketHandlers';
 import LogoBackground from '../LogoBackground';
 import CtrlToggle from './CtrlToggle';
 import { useLocation } from 'react-router-dom';
@@ -21,40 +22,19 @@ export type PlayerColor = 'black'|'red'|'green'|'blue'|'yellow';
 export const buttonColors: PlayerColor[] = [ 'red', 'green', 'blue', 'yellow' ]
 
 const Controller = () => {
-  const { isSupported, released, request, release } = useWakeLock({
-    // onRequest: () => alert('Screen Wake Lock: requested!'),
-    // onError: () => alert('An error happened 💥'),
-    // onRelease: () => alert('Screen Wake Lock: released!'),
-    onRequest: () => console.log('Screen Wake Lock: requested!'),
-    onError: () => console.log('An error happened 💥'),
-    onRelease: () => console.log('Screen Wake Lock: released!'),
-  });
-
-  useEffect(() => {
-    if (isSupported) {
-      if (!released) {
-        request()
-      }
-    }
-
-    return () => {
-      release()
-    }
-  }, []);
-
-  // const { pathname, search } = useLocation();
-  const socket = useSocket();
-  const { socketStore, gameStore } = useStores();
+  useWakeLock();
   // todo: slotId should be coming from search
   const { instanceId, slotId } = useParams();
+  useSocketHandlers(instanceId, slotId);
 
+  const socket = useSocket();
+  const { socketStore, gameStore } = useStores();
+  const { getToken } = useAuth();
   const [ firedMouseUp, setFiredMouseUp ] = useState(false);
   const [ alreadyConnected, setAlreadyConnected ] = useState(socketStore.connectionState.connected);
 
-  const { getToken } = useAuth();
 
   useEffect(() => {
-    // setIsLoadingInstances(true);
     const fetchInstances = async () => {
       const token = await getToken();
       fetch(`${import.meta.env.VITE_SERVER_API}/api/instances/${instanceId}`, {
@@ -64,10 +44,8 @@ const Controller = () => {
         .then(data => {
           console.log('success')
           socketStore.setCurrentInstance(data);
-          // setIsLoadingInstances(false);
         }).catch(() => {
           socketStore.setCurrentInstance(undefined);
-          // setIsLoadingInstances(false);
         });
     }
     fetchInstances();
@@ -98,122 +76,12 @@ const Controller = () => {
     }
   }, [ alreadyConnected, sendJoinRequest, socketStore.connectionState.connected, socketStore.currentInstance ]);
 
-  const handleConnected = useCallback(() => {
-    console.log('socket::connected');
-    setAlreadyConnected(false);
-
-    socketStore.updateConnectionState({
-      clientId: socket.id,
-      connected: true,
-      connecting: false,
-      failed: false,
-      failReason: '',
-    });
-  }, [ socketStore, sendJoinRequest ]);
-
-  const handleDisconnected = useCallback((data:any) => {
-    console.log('socket::disconnected', data);
-    socketStore.resetConnectionState();
-    window.location.href = '/'
-  }, [ socketStore ]);
-
-  const handleJoinAccepted = useCallback((data:any) => {
-    console.log('socket::USER_JOIN_ACCEPTED', data);
-
-    socketStore.updateConnectionState({
-      clientId: socket.id,
-      joining: false,
-      joined: true,
-      rejected: false,
-      rejectReason: '',
-    });
-
-    socketStore.updateRoomState({
-      currentSlot: data.userSlot,
-    });
-  }, [ socketStore ]);
-
-  const handleJoinRejected = useCallback((data:any) => {
-    console.log('socket::USER_JOIN_REJECTED', data);
-
-    socketStore.updateConnectionState({
-      joining: false,
-      rejected: true,
-      rejectReason: data.reason
-    });
-  }, [ socketStore ]);
-
-  const handleUserJoined = useCallback((data:any) => {
-    console.log('socket::USER_JOINED', data);
-
-    socketStore.updateRoomState({
-      currentSlot: data.client_index,
-      numMaxUsers: data.maxSlots,
-      users: data.users,
-    });
-  }, [ socketStore ]);
-
-  const handleUserLeft = useCallback((data:any) => {
-    console.log('socket::USER_LEFT', data);
-
-    socketStore.updateRoomState({
-      currentSlot: data.client_index,
-      numMaxUsers: data.maxSlots,
-      users: data.users,
-    });
-  }, [ socketStore ]);
-
-  const handleUserUpdate = useCallback((data:any) => {
-    console.log('socket::USER_UPDATE', data);
-    console.log(socketStore.roomState.users)
-    socketStore.updateRoomState({
-      users: socketStore.roomState.users?.map((user: Player) => {
-        if (user.id !== data.id) {
-          return user;
-        }
-        console.log(user, user.id, data.client_index)
-
-        return{
-          ...user,
-          name: data.name
-        }
-      }),
-    });
-  }, [ socketStore ]);
-
-  const handleHostMessage = useCallback((data:any) => {
-    console.log('socket::HOST_MESSAGE', data);
-
-    gameStore.handleUpdate(data)
-  }, [ socketStore ]);
-
   useEffect(() => {
-    socket.on('connect', handleConnected);
-    socket.on('disconnect', handleDisconnected);
-    socket.on('USER_JOIN_ACCEPTED', handleJoinAccepted);
-    socket.on('USER_JOIN_REJECTED', handleJoinRejected);
-    socket.on('USER_JOINED', handleUserJoined);
-    socket.on('USER_UPDATE', handleUserUpdate);
-    socket.on('USER_LEFT', handleUserLeft);
-    socket.on('OSC_HOST_MESSAGE', handleHostMessage);
-
     document.body.classList.add('prevent-scroll-drag');
-
     return () => {
-      // socketStore.resetConnectionState();
-
-      socket.off('connect', handleConnected);
-      socket.off('disconnect', handleDisconnected);
-      socket.off('USER_JOIN_ACCEPTED', handleJoinAccepted);
-      socket.off('USER_JOIN_REJECTED', handleJoinRejected);
-      socket.off('USER_JOINED', handleUserJoined);
-      socket.off('USER_UPDATE', handleUserUpdate);
-      socket.off('USER_LEFT', handleUserLeft);
-      socket.on('OSC_HOST_MESSAGE', handleHostMessage);
-
       document.body.classList.remove('prevent-scroll-drag');
     };
-  }, [socket, socketStore, handleConnected, handleDisconnected, handleJoinAccepted, handleJoinRejected, handleUserJoined, handleUserLeft]);
+  }, []);
 
   const handleMouseUp = useCallback((data:any) => {
     console.log('UI::mouseUp', data);
@@ -224,7 +92,6 @@ const Controller = () => {
     }, 400)
   }, []);
 
-  // console.log({ firedMouseUp })
 
   useEffect(() => {
     window.addEventListener('mouseup', handleMouseUp);
@@ -238,6 +105,7 @@ const Controller = () => {
 
   const location = useLocation();
   const [ isAdminMode, setIsAdminMode ] = useState(false)
+
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setIsAdminMode(!!params.get('admin'))
