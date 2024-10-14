@@ -90,6 +90,30 @@ const Admin: React.FC = (props) => {
     }
   };
 
+  const newInstance = () => {
+    // defaults?
+    addInstanceToUser({
+      "id": "",
+      "name": "New Instance",
+      "description": "",
+      "settings": {
+        "slots": 12,
+        "randomPick": false,
+        "sequentialPick": true,
+        "slotPick": false,
+        "layout": {
+          "wrapButtons": false
+        },
+        "controls": {
+          "texts": [
+          ],
+          "buttons": [
+          ]
+        }
+      }
+    });
+  }
+
   const deleteInstance = async (instance: Instance) => {
     const confirmation = confirm(
       `Are you sure you want to delete ${instance.name}? ${instance.id}`
@@ -143,9 +167,12 @@ const Admin: React.FC = (props) => {
           <div className="mb-4">
             <Join deleteInstance={deleteInstance} instances={instances} />
           </div>
-          <Accordion className="mb-4">
+          <div>
+          <h4>Create New Instance</h4>
+          <Button onClick={newInstance}>Create New Instance</Button>
+          <Accordion className="mt-3 mb-4">
             <Accordion.Header>
-              Available Instance Templates
+              Use a template
             </Accordion.Header>
             <Accordion.Body>
               <p>Select one to add to your account.</p>
@@ -169,6 +196,7 @@ const Admin: React.FC = (props) => {
               </ListGroup>
             </Accordion.Body>
           </Accordion>
+          </div>
         </div>
       </SignedIn>
     </div>
