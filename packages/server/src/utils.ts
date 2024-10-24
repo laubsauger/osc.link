@@ -1,4 +1,4 @@
-const getRandomArrayElement = (arr) => {
+const getRandomArrayElement = (arr: []) => {
   return arr[Math.floor(random(1, arr.length))-1];
 }
 
