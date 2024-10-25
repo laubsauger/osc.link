@@ -1,5 +1,10 @@
+if (!import.meta.env.VITE_SERVER_API) {
+  throw new Error('VITE_SERVER_API env var not specified');
+}
+
 const config = {
-  socketServer: process.env.NODE_ENV === 'production' ? 'https://socket.osc.link' : 'http://localhost:8080',
+  // fix this
+  socketServer: import.meta.env.VITE_SERVER_API,
   socketRoomPrefix: 'users',
 };
 
