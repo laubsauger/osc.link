@@ -19,6 +19,7 @@ import {
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Join from "./Join";
+import templates from '../../../dummy/instances';
 
 interface Instance {
   name: string;
@@ -30,7 +31,7 @@ interface Instance {
 const Admin: React.FC = (props) => {
   const { isSignedIn, getToken } = useAuth();
   const [instances, setInstances] = useState<Instance[]>([]);
-  const [availableInstances, setAvailableInstances] = useState<Instance[]>([]);
+  const [availableInstances, setAvailableInstances] = useState<Instance[]>(templates);
   useEffect(() => {
     const fetchInstances = async () => {
       try {
@@ -48,21 +49,8 @@ const Admin: React.FC = (props) => {
       }
     };
 
-    const fetchAvailableInstances = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SERVER_API}/api/instances.json`
-        );
-        const data = await response.json();
-        setAvailableInstances(data);
-      } catch (error) {
-        console.error("Error fetching available instances:", error);
-      }
-    };
-
     if (isSignedIn) {
       fetchInstances();
-      fetchAvailableInstances();
     }
   }, [isSignedIn]);
 

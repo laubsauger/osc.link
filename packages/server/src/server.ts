@@ -68,7 +68,6 @@ app.use(
 );
 app.use(headerConfig);
 app.use(express.json());
-app.use("/api", express.static(path.join(__dirname, "dummy")));
 app.use("/api/instances", instanceRoutes);
 
 export default app;
