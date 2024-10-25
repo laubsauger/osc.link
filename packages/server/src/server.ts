@@ -1,27 +1,24 @@
-// @ts-nocheck
-// TODO: Update to TypeScript
 import "dotenv/config";
-
-const express = require("express");
-const http = require("http");
-const path = require("path");
-const cors = require("cors");
-const {
+import express, { Request, Response, NextFunction } from "express";
+import http from 'http';
+import cors from 'cors';
+import {
   onOscJoinRequest,
   onOscHostMessage,
   onOscCtrlMessage,
   onDisconnect,
   onUserJoinRequest,
-} = require("./socket");
+} from "./socket";
 import sequelize from "./database";
 import instanceRoutes from "./routes/instances";
 import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import defineAssociations from "./models/associations";
+import { Socket, Server } from "socket.io";
 
 const app = express();
 const port = Number(process.env.SERVER_PORT) || 8080;
 
-const headerConfig = (req, res, next) => {
+const headerConfig = (req: Request, res: Response, next: NextFunction) => {
   // allow external requests
   // if (process.env.NODE_ENV === 'production') {
   //   const origin = req.headers.origin;
@@ -72,13 +69,13 @@ app.use("/api/instances", instanceRoutes);
 
 export default app;
 
-const server = http.createServer(app).listen(port, async (e) => {
+const server = http.createServer(app).listen(port, async () => {
   console.log("listening on " + port);
   defineAssociations();
   await sequelize.sync();
 });
 
-let io = require("socket.io")({
+let io = new Server({
   cors: {
     origin: ["https://beta.osc.link", "https://osc.link"],
     methods: ["GET", "POST"],
@@ -89,14 +86,14 @@ let io = require("socket.io")({
 /**
  * Register all socket event handlers. There should only be one "connection" handler.
  */
-io.on("connection", (socket) => {
+io.on("connection", (socket: Socket) => {
   // assignedClientSlotIndex is tied to the socket state.
   // should do via session cookie?
   let assignedClientSlotIndex = false;
   socket.on(
     "OSC_JOIN_REQUEST",
     async (data) =>
-      await onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
+      await onOscJoinRequest({ socket, data, io })
   );
   socket.on(
     "OSC_HOST_MESSAGE",
