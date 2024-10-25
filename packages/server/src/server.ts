@@ -67,7 +67,11 @@ const server = http.createServer(app).listen(port, async (e) => {
 });
 
 let io = require("socket.io")({
-  cors: true,
+  cors: {
+    origin: ['https://beta.osc.link', 'https://osc.link'],
+    methods: ["GET", "POST"],
+    credentials: true
+  },
 }).listen(server);
 
 /**
