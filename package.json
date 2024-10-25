@@ -10,7 +10,8 @@
     "start-web": "npm start --workspace osc.link-web",
     "start-electron": "npm run dev --workspace osc.link-electron",
     "test": "jest",
-    "build": "npm run build --workspace osc.link-electron"
+    "build": "npm run build --workspace osc.link-web --workspace osc.link-server",
+    "build:electron": "npm run build --workspace osc.link-electron"
   },
   "dependencies": {
     "@clerk/themes": "^2.1.30",

@@ -1,6 +1,6 @@
-[
+export default [
   {
-    "id": 7,
+    "id": "7",
     "name": "Book Flip - Eden x 204",
     "description": "",
     "settings": {
@@ -62,7 +62,7 @@
     }
   },
   {
-    "id": 5,
+    "id": "5",
     "name": "Prompt Battle",
     "description": "Mars be prompin'",
     "settings": {
@@ -81,7 +81,7 @@
     }
   },
   {
-    "id": 6,
+    "id": "6",
     "name": "Draw Diffusion",
     "description": "Live Painting with LCM",
     "settings": {
@@ -167,7 +167,7 @@
     }
   },
   {
-    "id": 1,
+    "id": "1",
     "name": "Default",
     "description": "Awesome session description",
     "settings": {
@@ -207,7 +207,7 @@
     }
   },
   {
-    "id": 2,
+    "id": "2",
     "name": "Sensors",
     "description": "Demoing accelerometer and gyroscope input",
     "settings": {
@@ -248,7 +248,7 @@
     }
   },
   {
-    "id": 3,
+    "id": "3",
     "name": "Faders",
     "description": "Uses linear faders",
     "settings": {
@@ -297,7 +297,7 @@
     }
   },
   {
-    "id": 4,
+    "id": "4",
     "name": "Text prompt",
     "description": "Testing texts",
     "settings": {

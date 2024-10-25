@@ -19,18 +19,19 @@ import {
 } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import Join from "./Join";
+import templates from '../../../dummy/instances';
 
 interface Instance {
   name: string;
   description?: string;
   settings?: object;
-  id: string;
+  id?: string;
 }
 
 const Admin: React.FC = (props) => {
   const { isSignedIn, getToken } = useAuth();
   const [instances, setInstances] = useState<Instance[]>([]);
-  const [availableInstances, setAvailableInstances] = useState<Instance[]>([]);
+  const [availableInstances, setAvailableInstances] = useState<Instance[]>(templates);
   useEffect(() => {
     const fetchInstances = async () => {
       try {
@@ -48,21 +49,8 @@ const Admin: React.FC = (props) => {
       }
     };
 
-    const fetchAvailableInstances = async () => {
-      try {
-        const response = await fetch(
-          `${import.meta.env.VITE_SERVER_API}/api/instances.json`
-        );
-        const data = await response.json();
-        setAvailableInstances(data);
-      } catch (error) {
-        console.error("Error fetching available instances:", error);
-      }
-    };
-
     if (isSignedIn) {
       fetchInstances();
-      fetchAvailableInstances();
     }
   }, [isSignedIn]);
 
@@ -70,14 +58,17 @@ const Admin: React.FC = (props) => {
     delete instance.id;
     try {
       const token = await getToken();
-      const response = await fetch("http://localhost:8080/api/instances", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(instance),
-      });
+      const response = await fetch(
+        `${import.meta.env.VITE_SERVER_API}/api/instances`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(instance),
+        }
+      );
 
       if (response.ok) {
         const newInstance = await response.json();
@@ -100,7 +91,7 @@ const Admin: React.FC = (props) => {
     try {
       const token = await getToken();
       const response = await fetch(
-        `http://localhost:8080/api/instances/${instance.id}`,
+        `${import.meta.env.VITE_SERVER_API}/api/instances/${instance.id}`,
         {
           method: "DELETE",
           headers: {
@@ -144,9 +135,7 @@ const Admin: React.FC = (props) => {
             <Join deleteInstance={deleteInstance} instances={instances} />
           </div>
           <Accordion className="mb-4">
-            <Accordion.Header>
-              Available Instance Templates
-            </Accordion.Header>
+            <Accordion.Header>Available Instance Templates</Accordion.Header>
             <Accordion.Body>
               <p>Select one to add to your account.</p>
               <ListGroup>

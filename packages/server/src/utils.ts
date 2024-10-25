@@ -1,4 +1,6 @@
-const getRandomArrayElement = (arr) => {
+// @ts-nocheck
+// TODO: Update to TypeScript. 
+const getRandomArrayElement = (arr: []) => {
   return arr[Math.floor(random(1, arr.length))-1];
 }
 

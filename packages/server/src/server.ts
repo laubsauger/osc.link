@@ -1,6 +1,6 @@
 // @ts-nocheck
 // TODO: Update to TypeScript
-import 'dotenv/config';
+import "dotenv/config";
 
 const express = require("express");
 const http = require("http");
@@ -13,11 +13,10 @@ const {
   onDisconnect,
   onUserJoinRequest,
 } = require("./socket");
-import sequelize from './database';
-import instanceRoutes from './routes/instances';
-import { ClerkExpressWithAuth } from '@clerk/clerk-sdk-node';
-import defineAssociations from './models/associations';
-
+import sequelize from "./database";
+import instanceRoutes from "./routes/instances";
+import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
+import defineAssociations from "./models/associations";
 
 const app = express();
 const port = Number(process.env.SERVER_PORT) || 8080;
@@ -51,14 +50,27 @@ const headerConfig = (req, res, next) => {
   next();
 };
 
-app.use(cors({ origin: "*", credentials: true }));
+const allowedOrigins = ["https://beta.osc.link", "https://osc.link"];
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // allow requests with no origin (mobile apps, curl reqs)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    credentials: true,
+  })
+);
 app.use(headerConfig);
 app.use(express.json());
-app.use("/api", express.static(path.join(__dirname, "dummy")));
 app.use("/api/instances", instanceRoutes);
 
 export default app;
-
 
 const server = http.createServer(app).listen(port, async (e) => {
   console.log("listening on " + port);
@@ -67,7 +79,11 @@ const server = http.createServer(app).listen(port, async (e) => {
 });
 
 let io = require("socket.io")({
-  cors: true,
+  cors: {
+    origin: ["https://beta.osc.link", "https://osc.link"],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
 }).listen(server);
 
 /**
@@ -77,27 +93,39 @@ io.on("connection", (socket) => {
   // assignedClientSlotIndex is tied to the socket state.
   // should do via session cookie?
   let assignedClientSlotIndex = false;
-  socket.on("OSC_JOIN_REQUEST", async (data) =>
-    await onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
+  socket.on(
+    "OSC_JOIN_REQUEST",
+    async (data) =>
+      await onOscJoinRequest({ socket, data, assignedClientSlotIndex, io })
   );
-  socket.on("OSC_HOST_MESSAGE", async (data) =>
-    await onOscHostMessage({
-      socket,
-      data,
-      io,
-    })
+  socket.on(
+    "OSC_HOST_MESSAGE",
+    async (data) =>
+      await onOscHostMessage({
+        socket,
+        data,
+        io,
+      })
   );
 
-  socket.on("OSC_CTRL_MESSAGE", async (data) =>
-    await onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
+  socket.on(
+    "OSC_CTRL_MESSAGE",
+    async (data) =>
+      await onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
   );
 
   socket.on("USER_JOIN_REQUEST", async (data) => {
-    assignedClientSlotIndex = await onUserJoinRequest({ socket, data, assignedClientSlotIndex, io });
+    assignedClientSlotIndex = await onUserJoinRequest({
+      socket,
+      data,
+      assignedClientSlotIndex,
+      io,
+    });
   });
 
-  socket.on("disconnect", async () =>
-    await onDisconnect({ socket, assignedClientSlotIndex, io })
+  socket.on(
+    "disconnect",
+    async () => await onDisconnect({ socket, assignedClientSlotIndex, io })
   );
 
   socket.on("connect_failed", (err) => {
