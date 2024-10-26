@@ -1,12 +1,7 @@
-// @ts-nocheck
-const fs = require("fs");
-const path = require("path");
-const {
-  createRoomState,
-  assignClientSlot,
-  resetClientSlot,
-} = require("./utils");
-const { Server } = require("socket.io");
+import fs from "fs";
+import path from "path";
+import { createRoomState, assignClientSlot, resetClientSlot } from "./utils";
+import { Server, Socket } from "socket.io";
 import Instance from "./models/Instance";
 
 const roomTypes = {
@@ -55,14 +50,26 @@ const roomTypes = {
  * "slotPick": true,
  * "sequentialPick": false,
  */
-let instances = {};
+
+export type InstanceInMemoryData = {
+  id: string,
+  rooms: {
+    users: string;
+    control: string;
+  };
+  userSlots: { slot_index: number; client: any }[];
+  users: any[];
+  lastTriedSlotIndex: number;
+  settings: any,
+};
+let instances: Record<string, InstanceInMemoryData> = {};
 
 /**
  * Helper to get an instance. We are storing them in memory with additional info
  * related to socket rooms and connected users. This is due to legacy in-memory
  * behaviour pre-DB, but also the ephemerality of this information.
  */
-async function getInstance(instanceId: String): Instance {
+async function getInstance(instanceId: string): Promise<InstanceInMemoryData> {
   if (!instances[instanceId]) {
     console.log("no in memory instance, finding by ", instanceId);
     const instanceConfig = await Instance.findByPk(instanceId);
@@ -71,7 +78,8 @@ async function getInstance(instanceId: String): Instance {
     }
 
     let userSlots = [];
-    for (let i = 0; i < instanceConfig.settings.slots; i++) {
+    const slots = instanceConfig?.settings?.slots || 0;
+    for (let i = 0; i < slots; i++) {
       userSlots.push({ slot_index: i + 1, client: null });
     }
 
@@ -84,12 +92,13 @@ async function getInstance(instanceId: String): Instance {
       userSlots: userSlots,
       users: [],
       lastTriedSlotIndex: 0,
-    };
+    } as InstanceInMemoryData;
   }
   return instances[instanceId];
 }
 
-async function onOscJoinRequest({ socket, data: room, io }) {
+export async function onOscJoinRequest({ socket, data, io }: { socket: Socket, data: { room: string }, io: Server}): Promise<false | undefined> {
+  const room = data.room;
   const instance = await getInstance(room.split(":")[1]);
 
   if (!instance) {
@@ -102,7 +111,7 @@ async function onOscJoinRequest({ socket, data: room, io }) {
 
   const newRoomState = createRoomState(
     instance,
-    socket.adapter.rooms.get(instance.rooms.control)
+    io.sockets.adapter.rooms.get(instance.rooms.control)
   );
 
   console.log("OSC_JOIN_ACCEPTED", {
@@ -118,12 +127,11 @@ async function onOscJoinRequest({ socket, data: room, io }) {
   io.to(roomTypes.control).emit("OSC_JOINED", newRoomState);
 }
 
-async function onUserJoinRequest({
+export async function onUserJoinRequest({
   socket,
   data,
-  assignedClientSlotIndex,
   io,
-}) {
+}: { socket: Socket, data: { room: string, wantsSlot: number }, io: Server }) {
   const { room, wantsSlot } = data;
   const instance = await getInstance(room.split(":")[1]);
 
@@ -141,7 +149,7 @@ async function onUserJoinRequest({
     wantsSlot
   );
 
-  let requestedSlotIndex = false;
+  let requestedSlotIndex = null;
   if (wantsSlot && wantsSlot > 0 && wantsSlot <= instance.settings.slots) {
     requestedSlotIndex = wantsSlot;
     console.log("=> requested slot, will overtake", requestedSlotIndex);
@@ -149,10 +157,10 @@ async function onUserJoinRequest({
 
   const roomState = createRoomState(
     instance,
-    socket.adapter.rooms.get(instance.rooms.users)
+    io.sockets.adapter.rooms.get(instance.rooms.users)
   );
 
-  assignedClientSlotIndex = assignClientSlot(
+  let assignedClientSlotIndex = assignClientSlot(
     instance,
     roomState,
     socket,
@@ -188,7 +196,7 @@ async function onUserJoinRequest({
 
   const newRoomState = createRoomState(
     instance,
-    socket.adapter.rooms.get(instance.rooms.users)
+    io.sockets.adapter.rooms.get(instance.rooms.users)
   );
   console.log("OSC_CTRL_USER_JOINED", "| Instance:", instance.id, socket.id);
   io.to(instance.rooms.control).emit("OSC_CTRL_USER_JOINED", {
@@ -205,7 +213,7 @@ async function onUserJoinRequest({
   });
 }
 
-async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
+export async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
   let instance;
   try {
     instance = await getInstance(socket.instanceId);
@@ -279,7 +287,7 @@ function resetUsersRoom() {
  * - @todo rework this data argument. Previous implementation had { data, room },
  *         name would be better if it was { game, room }
  */
-async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
+export async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
   const processing_start = new Date().getTime();
 
   if (
@@ -333,7 +341,7 @@ async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
  * @param {number} params.assignedClientSlotIndex - The index of the client slot assigned.
  * @param {Server} params.io - The Socket.IO server instance.
  */
-async function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
+export async function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
   console.log("onOscCtrlMessage", io.instanceId);
   const processing_start = new Date().getTime();
   // const instance = instances.filter((item) => item.id === socket.instanceId)[0];
@@ -377,11 +385,3 @@ async function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
     });
   }
 }
-
-module.exports = {
-  onOscJoinRequest,
-  onOscHostMessage,
-  onOscCtrlMessage,
-  onDisconnect,
-  onUserJoinRequest,
-};

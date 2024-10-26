@@ -7,7 +7,7 @@ class Instance extends Model {
   public id!: number;
   public name!: string;
   public description?: string;
-  public settings?: object;
+  public settings?: Record<string, any>;
   public userId!: string;
 
   public readonly createdAt!: Date;

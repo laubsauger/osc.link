@@ -1,11 +1,24 @@
-// @ts-nocheck
-// TODO: Update to TypeScript. 
-const getRandomArrayElement = (arr: []) => {
-  return arr[Math.floor(random(1, arr.length))-1];
+import { Socket } from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { InstanceInMemoryData } from "./socket";
+
+function random(mn: number, mx: number) {
+  return Math.random() * (mx - mn) + mn;
 }
 
-function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
-    console.log('requested slot index')
+export const getRandomArrayElement = (arr: any[]) => {
+  return arr[Math.floor(random(1, arr.length)) - 1];
+};
+
+export type RoomState = { usedSlots: any; maxSlots: any; users?: any };
+
+export function assignClientSlot(
+  instance: InstanceInMemoryData,
+  roomState: RoomState,
+  newClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+  requestedSlotIndex: number | null
+) {
+  console.log("requested slot index");
   // override requested slot and assign new client id to it
   if (requestedSlotIndex) {
     instance.userSlots = instance.userSlots.map((slot) => {
@@ -66,7 +79,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
   return nextFreeSlotIndex;
 }
 
-function resetClientSlot(instance, client) {
+export function resetClientSlot(instance, client) {
   instance.userSlots = instance.userSlots.map((slot) => {
     if (slot.client && slot.client.id !== client.id) {
       return slot;
@@ -79,7 +92,7 @@ function resetClientSlot(instance, client) {
   });
 }
 
-function createRoomState(instance, clientsInRoom) {
+export function createRoomState(instance, clientsInRoom) {
   const numClients = clientsInRoom ? clientsInRoom.size : 0;
 
   return {
@@ -88,5 +101,3 @@ function createRoomState(instance, clientsInRoom) {
     users: instance.users,
   };
 }
-
-module.exports = { assignClientSlot, resetClientSlot, createRoomState };
