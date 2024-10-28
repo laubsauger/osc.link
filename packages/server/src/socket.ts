@@ -114,6 +114,9 @@ export async function onUserJoinRequest({
     requestedSlotIndex
   );
 
+  // store assigned slot on client object..
+  socket.data.assignedClientSlotIndex = assignedClientSlotIndex;
+
   if (assignedClientSlotIndex === false) {
     console.log("Room is full;");
     socket.emit("USER_JOIN_REJECTED", {
@@ -164,14 +167,14 @@ export async function onDisconnect({
   socket,
   io,
 }: {
-  socket: any;
-  io: any;
+  socket: Socket;
+  io: Server;
 }): Promise<void> {
   let instance;
   try {
     instance = await getInstance(socket.data.instanceId);
-  } catch (e) {
-    console.error("disconnect::Invalid Instance", socket.data.instanceId);
+  } catch (e: any) {
+    console.warn("disconnect::Invalid Instance or Already disconnected", socket.data.instanceId, e.stack);
     return;
   }
 
@@ -179,7 +182,7 @@ export async function onDisconnect({
 
   const newRoomState = createRoomState(
     instance,
-    socket.adapter.rooms.get(instance.rooms.users)
+    io.sockets.adapter.rooms.get(instance.rooms.users)
   );
 
   io.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
@@ -313,7 +316,6 @@ export async function onOscCtrlMessage({
   data: Record<string, any>;
   io: Server;
 }) {
-  console.log("onOscCtrlMessage", socket.data.instanceId);
   const processing_start = new Date().getTime();
   const instance = await getInstance(socket.data.instanceId);
   if (!instance) {
@@ -332,10 +334,9 @@ export async function onOscCtrlMessage({
   );
   /**
    * why is this also emitting a OSC_CTRL_MESSAGE after receiving OSC_CTRL_MESSAGE?
-   *
+   * @todo: make this dependant on current config
+   * @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
    */
-  // @todo: make this dependant on current config
-  // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
   io.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
     client_index: socket.data.assignedClientSlotIndex,

@@ -108,12 +108,11 @@ io.on("connection", (socket: Socket) => {
   );
 
   socket.on("USER_JOIN_REQUEST", async (data) => {
-    const assignedClientSlotIndex = await onUserJoinRequest({
+    await onUserJoinRequest({
       socket,
       data,
       io,
     });
-    socket.data.assignedClientSlotIndex = assignedClientSlotIndex;
   });
 
   socket.on(

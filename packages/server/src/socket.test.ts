@@ -6,14 +6,13 @@ import sequelize from "./database";
 import defineAssociations from "./models/associations";
 import Instance from "./models/Instance";
 import Admin from "./models/Admin";
-
-const {
+import {
   onOscJoinRequest,
   onOscHostMessage,
   onOscCtrlMessage,
   onDisconnect,
   onUserJoinRequest,
-} = require("./socket");
+} from "./socket";
 
 jest.setTimeout(100); // Set default timeout to 100 ms
 
@@ -99,7 +98,6 @@ describe("Socket Server", () => {
                   socket,
                   data,
                   io: ioServer,
-                  assignedClientSlotIndex: 1,
                 });
               } catch (error) {
                 console.error("Error handling OSC_CTRL_MESSAGE:", error);
@@ -140,7 +138,7 @@ describe("Socket Server", () => {
       expect(data.id).toBe(clientSocket.id);
       done();
     });
-    clientSocket.emit("OSC_JOIN_REQUEST", `control:${testInstance.id}`);
+    clientSocket.emit("OSC_JOIN_REQUEST", { room: `control:${testInstance.id}` });
   });
 
   test("should handle USER_JOIN_REQUEST", (done) => {
@@ -182,7 +180,7 @@ describe("Socket Server", () => {
     beforeEach(() => {
       // need to ensure there is a user session before each of these tests
       // using a different room because we are not clearing the room before each test
-      clientSocket.emit("USER_JOIN_REQUEST", { room: `user:${testInstance.id}` });
+      clientSocket.emit("USER_JOIN_REQUEST", { room: `user:${testInstance.id}`, wantsSlot: 0 });
       serverSocket.join(`control:${testInstance.id}`);
       clientSocket.removeAllListeners();
       ctrlSocket.removeAllListeners();
@@ -213,16 +211,15 @@ describe("Socket Server", () => {
     }, 1000);
 
     test("full flow: client emits OSC_CTRL_MESSAGE, server handles it, client receives response", (done) => {
-      const testData = { message: "button", btnId: "channel1", state: 1 };
-      const assignedClientSlotIndex = 1;
+      const testData = { message: "button", btnId: "channel1", state: 1, };
       clientSocket.emit("OSC_CTRL_MESSAGE", testData);
 
       ctrlSocket.on("OSC_CTRL_MESSAGE", (data) => {
-        console.log("OSC_CTRL_MESSAGE", data);
+        console.log("OSC_CTRL_MESSAGE test", data, );
         expect(data.message).toBe(testData.message);
         expect(data.btnId).toBe(testData.btnId);
         expect(data.state).toBe(testData.state);
-        expect(data.client_index).toBe(assignedClientSlotIndex);
+        expect(data.client_index).toBe(0);
         done();
       });
     });
