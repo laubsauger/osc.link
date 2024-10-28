@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import { InstanceInMemoryData, InstanceUser, UserSlot } from "./inMemoryInstances";
+import { InstanceInMemoryData, ConnectedClient, InstanceSlot } from "./inMemoryInstances";
 
 function random(mn: number, mx: number) {
   return Math.random() * (mx - mn) + mn;
@@ -10,7 +10,7 @@ export const getRandomArrayElement = (arr: any[]) => {
   return arr[Math.floor(random(1, arr.length)) - 1];
 };
 
-export type RoomState = { usedSlots: number; maxSlots?: number; users?: InstanceUser[] };
+export type RoomState = { usedSlots: number; maxSlots?: number; users?: ConnectedClient[] };
 
 export function assignClientSlot(
   instance: InstanceInMemoryData,
@@ -21,7 +21,7 @@ export function assignClientSlot(
   console.log("requested slot index");
   // override requested slot and assign new client id to it
   if (requestedSlotIndex) {
-    instance.userSlots = instance.userSlots.map((slot) => {
+    instance.instanceSlots = instance.instanceSlots.map((slot) => {
       if (slot.slot_index !== requestedSlotIndex) {
         return slot;
       }
@@ -49,7 +49,7 @@ export function assignClientSlot(
   }
 
   // get free slots
-  const freeSlots = instance.userSlots.filter((slot) => !slot.client);
+  const freeSlots = instance.instanceSlots.filter((slot) => !slot.client);
   const freeSlotsExcludingLastTried =
     freeSlots.length > 1
       ? freeSlots.filter(
@@ -65,7 +65,7 @@ export function assignClientSlot(
     : freeSlotsExcludingLastTried?.[0]?.slot_index ?? 0;
 
   // assign client id to it
-  instance.userSlots = instance.userSlots.map((slot) => {
+  instance.instanceSlots = instance.instanceSlots.map((slot) => {
     if (slot.slot_index !== nextFreeSlotIndex) {
       return slot;
     }
@@ -80,7 +80,7 @@ export function assignClientSlot(
 }
 
 export function resetClientSlot(instance: InstanceInMemoryData, client: Socket) {
-  instance.userSlots = instance.userSlots.map((slot) => {
+  instance.instanceSlots = instance.instanceSlots.map((slot) => {
     if (slot.client && slot.client.id !== client.id) {
       return slot;
     }
@@ -98,6 +98,6 @@ export function createRoomState(instance: InstanceInMemoryData, clientsInRoom?: 
   return {
     usedSlots: numClients,
     maxSlots: instance?.settings?.slots,
-    users: instance.users,
+    users: instance.connectedClients,
   };
 }

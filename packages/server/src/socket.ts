@@ -136,8 +136,8 @@ export async function onUserJoinRequest({
     userSlot: assignedClientSlotIndex,
   });
 
-  if (!instance.users.filter((user) => user.id === socket.id).length) {
-    instance.users.push({
+  if (!instance.connectedClients.filter((user) => user.id === socket.id).length) {
+    instance.connectedClients.push({
       id: socket.id,
       client_index: assignedClientSlotIndex,
       name: "",
@@ -178,7 +178,7 @@ export async function onDisconnect({
     return;
   }
 
-  instance.users = instance.users.filter((item) => item.id !== socket.id);
+  instance.connectedClients = instance.connectedClients.filter((item) => item.id !== socket.id);
 
   const newRoomState = createRoomState(
     instance,
@@ -215,7 +215,7 @@ function resetUsersRoom(socket: Socket, io: Server) {
     // For each instance, find the room with the specified roomName
     if (instance.rooms.users === `${roomTypes.users}:${instance.id}`) {
       // Loop over the instance's userSlots
-      instance.userSlots.forEach((slot) => {
+      instance.instanceSlots.forEach((slot) => {
         // If the slot has a connected client
         if (slot.client) {
           console.log("Disconnecting user", slot.client.id);
@@ -231,7 +231,7 @@ function resetUsersRoom(socket: Socket, io: Server) {
         }
       });
       // Clear users data
-      instance.users = [];
+      instance.connectedClients = [];
     }
   });
 }
@@ -344,7 +344,7 @@ export async function onOscCtrlMessage({
   });
 
   if (data && data.message && data.message === "userName") {
-    instance.users = instance.users.map((user) =>
+    instance.connectedClients = instance.connectedClients.map((user) =>
       user.id === socket.id ? { ...user, name: data.text } : user
     );
 
