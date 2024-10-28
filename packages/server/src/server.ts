@@ -11,7 +11,6 @@ import {
 } from "./socket";
 import sequelize from "./database";
 import instanceRoutes from "./routes/instances";
-import { ClerkExpressWithAuth } from "@clerk/clerk-sdk-node";
 import defineAssociations from "./models/associations";
 import { Socket, Server } from "socket.io";
 
@@ -47,7 +46,7 @@ const headerConfig = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
-const allowedOrigins = ["https://beta.osc.link", "https://osc.link"];
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? [];
 app.use(
   cors({
     origin: function (origin, callback) {
@@ -55,7 +54,7 @@ app.use(
       if (!origin) return callback(null, true);
       if (allowedOrigins.indexOf(origin) === -1) {
         const msg =
-          "The CORS policy for this site does not allow access from the specified Origin.";
+          `The CORS policy for this site does not allow access from the specified Origin: ${origin}.`;
         return callback(new Error(msg), false);
       }
       return callback(null, true);
@@ -77,7 +76,7 @@ const server = http.createServer(app).listen(port, async () => {
 
 let io = new Server({
   cors: {
-    origin: ["https://beta.osc.link", "https://osc.link"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true,
   },
