@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express, { Request, Response, NextFunction } from "express";
-import http from 'http';
-import cors from 'cors';
+import http from "http";
+import cors from "cors";
 import {
   onOscJoinRequest,
   onOscHostMessage,
@@ -89,11 +89,10 @@ let io = new Server({
 io.on("connection", (socket: Socket) => {
   // assignedClientSlotIndex is tied to the socket state.
   // should do via session cookie?
-  let assignedClientSlotIndex = false;
+  let assignedClientSlotIndex: number | null = null;
   socket.on(
     "OSC_JOIN_REQUEST",
-    async (data) =>
-      await onOscJoinRequest({ socket, data, io })
+    async (data) => await onOscJoinRequest({ socket, data, io })
   );
   socket.on(
     "OSC_HOST_MESSAGE",
@@ -115,7 +114,6 @@ io.on("connection", (socket: Socket) => {
     assignedClientSlotIndex = await onUserJoinRequest({
       socket,
       data,
-      assignedClientSlotIndex,
       io,
     });
   });

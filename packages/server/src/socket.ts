@@ -2,35 +2,12 @@ import fs from "fs";
 import path from "path";
 import { createRoomState, assignClientSlot, resetClientSlot } from "./utils";
 import { Server, Socket } from "socket.io";
-import Instance from "./models/Instance";
+import Instance, { getInstance, InstanceInMemoryData } from "./models/Instance";
 
 const roomTypes = {
   users: "users",
   control: "control",
 };
-
-/**
- * Goal: Use DB instances rather than this static config.
- */
-
-/**
- * instances is the following object.
- * {
- *  id, - assigned by DB
- *  name, - assigned on creation
- *  description, - assigned on creation
- *  settings, - defined in UI
- *  rooms { - defined dynamically based on id
- *    users,
- *    control
- *  }
- *  userSlots [ - TODO - this is assigned dynamically, based on settings.slots. Should be stored in DB?
- *    { slot_index, client } - client is socket id
- *  ],
- *  users: [] - socket id, assigne by socket.io
- *  lastTriedSlotIndex, - used to keep track of user slots - sequentially ordered.
- * }
- */
 
 /**
  * instance Slots
@@ -50,54 +27,15 @@ const roomTypes = {
  * "slotPick": true,
  * "sequentialPick": false,
  */
-
-export type InstanceInMemoryData = {
-  id: string,
-  rooms: {
-    users: string;
-    control: string;
-  };
-  userSlots: { slot_index: number; client: any }[];
-  users: any[];
-  lastTriedSlotIndex: number;
-  settings: any,
-};
-let instances: Record<string, InstanceInMemoryData> = {};
-
-/**
- * Helper to get an instance. We are storing them in memory with additional info
- * related to socket rooms and connected users. This is due to legacy in-memory
- * behaviour pre-DB, but also the ephemerality of this information.
- */
-async function getInstance(instanceId: string): Promise<InstanceInMemoryData> {
-  if (!instances[instanceId]) {
-    console.log("no in memory instance, finding by ", instanceId);
-    const instanceConfig = await Instance.findByPk(instanceId);
-    if (!instanceConfig) {
-      throw new Error(`Instance with ID ${instanceId} not found`);
-    }
-
-    let userSlots = [];
-    const slots = instanceConfig?.settings?.slots || 0;
-    for (let i = 0; i < slots; i++) {
-      userSlots.push({ slot_index: i + 1, client: null });
-    }
-
-    instances[instanceId] = {
-      ...instanceConfig.dataValues,
-      rooms: {
-        users: `users:${instanceConfig.id}`,
-        control: `control:${instanceConfig.id}`,
-      },
-      userSlots: userSlots,
-      users: [],
-      lastTriedSlotIndex: 0,
-    } as InstanceInMemoryData;
-  }
-  return instances[instanceId];
-}
-
-export async function onOscJoinRequest({ socket, data, io }: { socket: Socket, data: { room: string }, io: Server}): Promise<false | undefined> {
+export async function onOscJoinRequest({
+  socket,
+  data,
+  io,
+}: {
+  socket: Socket;
+  data: { room: string };
+  io: Server;
+}): Promise<false | undefined> {
   const room = data.room;
   const instance = await getInstance(room.split(":")[1]);
 
@@ -131,7 +69,11 @@ export async function onUserJoinRequest({
   socket,
   data,
   io,
-}: { socket: Socket, data: { room: string, wantsSlot: number }, io: Server }) {
+}: {
+  socket: Socket;
+  data: { room: string; wantsSlot: number };
+  io: Server;
+}) {
   const { room, wantsSlot } = data;
   const instance = await getInstance(room.split(":")[1]);
 
@@ -150,7 +92,11 @@ export async function onUserJoinRequest({
   );
 
   let requestedSlotIndex = null;
-  if (wantsSlot && wantsSlot > 0 && wantsSlot <= instance.settings.slots) {
+  if (
+    wantsSlot &&
+    wantsSlot > 0 &&
+    wantsSlot <= (instance?.settings?.slots ?? -1)
+  ) {
     requestedSlotIndex = wantsSlot;
     console.log("=> requested slot, will overtake", requestedSlotIndex);
   }
@@ -176,9 +122,8 @@ export async function onUserJoinRequest({
 
     return assignedClientSlotIndex;
   }
-
   socket.join(instance.rooms.users);
-  socket.instanceId = instance.id;
+  socket.data.instanceId = instance.id; // Using 'any' to bypass TypeScript error
 
   console.log("user join accepted");
   socket.emit("USER_JOIN_ACCEPTED", {
@@ -203,7 +148,7 @@ export async function onUserJoinRequest({
     id: socket.id,
     client_index: assignedClientSlotIndex,
     usedSlots: newRoomState.usedSlots,
-    maxSlots: instance.settings.slots,
+    maxSlots: instance?.settings?.slots,
   });
 
   io.to(instance.rooms.users).emit("USER_JOINED", {
@@ -213,13 +158,21 @@ export async function onUserJoinRequest({
   });
 }
 
-export async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
+export async function onDisconnect({
+  socket,
+  assignedClientSlotIndex,
+  io,
+}: {
+  socket: any;
+  assignedClientSlotIndex: number | null;
+  io: any;
+}): Promise<void> {
   let instance;
   try {
-    instance = await getInstance(socket.instanceId);
+    instance = await getInstance(socket.data.instanceId);
   } catch (e) {
-    console.error("disconnect::Invalid Instance", socket.instanceId);
-    return false;
+    console.error("disconnect::Invalid Instance", socket.data.instanceId);
+    return;
   }
 
   instance.users = instance.users.filter((item) => item.id !== socket.id);
@@ -233,15 +186,15 @@ export async function onDisconnect({ socket, assignedClientSlotIndex, io }) {
     id: socket.id,
     client_index: assignedClientSlotIndex,
     usedSlots: newRoomState.usedSlots,
-    maxSlots: instance.settings.slots,
+    maxSlots: instance?.settings?.slots,
   });
 
   io.to(instance.rooms.users).emit("USER_LEFT", {
     ...newRoomState,
     id: socket.id,
-    users: newRoomState.users.filter(
+    users: newRoomState?.users?.filter(
       (item) => item.id !== assignedClientSlotIndex
-    ),
+    ) ?? [],
     client_index: assignedClientSlotIndex,
   });
 
@@ -287,7 +240,11 @@ function resetUsersRoom() {
  * - @todo rework this data argument. Previous implementation had { data, room },
  *         name would be better if it was { game, room }
  */
-export async function onOscHostMessage({ socket, data: { data: game, room }, io }) {
+export async function onOscHostMessage({
+  socket,
+  data: { data: game, room },
+  io,
+}) {
   const processing_start = new Date().getTime();
 
   if (
@@ -341,11 +298,20 @@ export async function onOscHostMessage({ socket, data: { data: game, room }, io 
  * @param {number} params.assignedClientSlotIndex - The index of the client slot assigned.
  * @param {Server} params.io - The Socket.IO server instance.
  */
-export async function onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io }) {
-  console.log("onOscCtrlMessage", io.instanceId);
+export async function onOscCtrlMessage({
+  socket,
+  data,
+  assignedClientSlotIndex,
+  io,
+}: {
+  socket: Socket;
+  data: Record<string, any>;
+  assignedClientSlotIndex: number | null;
+  io: Server;
+}) {
+  console.log("onOscCtrlMessage", socket.data.instanceId);
   const processing_start = new Date().getTime();
-  // const instance = instances.filter((item) => item.id === socket.instanceId)[0];
-  const instance = await getInstance(socket.instanceId);
+  const instance = await getInstance(socket.data.instanceId);
   if (!instance) {
     console.error("OSC_CTRL_MESSAGE::Invalid Instance");
     return false;

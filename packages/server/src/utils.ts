@@ -1,6 +1,6 @@
 import { Socket } from "socket.io";
 import { DefaultEventsMap } from "socket.io/dist/typed-events";
-import { InstanceInMemoryData } from "./socket";
+import { InstanceInMemoryData, InstanceUser, UserSlot } from "./models/Instance";
 
 function random(mn: number, mx: number) {
   return Math.random() * (mx - mn) + mn;
@@ -10,7 +10,7 @@ export const getRandomArrayElement = (arr: any[]) => {
   return arr[Math.floor(random(1, arr.length)) - 1];
 };
 
-export type RoomState = { usedSlots: any; maxSlots: any; users?: any };
+export type RoomState = { usedSlots: number; maxSlots: number; users?: InstanceUser[] };
 
 export function assignClientSlot(
   instance: InstanceInMemoryData,
@@ -60,7 +60,7 @@ export function assignClientSlot(
   // console.log({freeSlotsExcludingLastTried})
 
   // pick random free slot
-  const nextFreeSlotIndex = instance.settings.randomPick
+  const nextFreeSlotIndex = instance?.settings?.randomPick
     ? getRandomArrayElement(freeSlotsExcludingLastTried).slot_index
     : freeSlotsExcludingLastTried?.[0]?.slot_index ?? 0;
 
@@ -79,7 +79,7 @@ export function assignClientSlot(
   return nextFreeSlotIndex;
 }
 
-export function resetClientSlot(instance, client) {
+export function resetClientSlot(instance: InstanceInMemoryData, client: Socket) {
   instance.userSlots = instance.userSlots.map((slot) => {
     if (slot.client && slot.client.id !== client.id) {
       return slot;
@@ -92,7 +92,7 @@ export function resetClientSlot(instance, client) {
   });
 }
 
-export function createRoomState(instance, clientsInRoom) {
+export function createRoomState(instance: InstanceInMemoryData, clientsInRoom): RoomState {
   const numClients = clientsInRoom ? clientsInRoom.size : 0;
 
   return {
