@@ -10,7 +10,6 @@ interface InstanceInMemoryAttributes {
     users: string;
     control: string;
   };
-  // todo: define difference between userSlots and users.. why???
   instanceSlots: InstanceSlot[];
   connectedClients: ConnectedClient[];
   lastTriedSlotIndex: number; // used to keep track of user slots - sequentially ordered.
@@ -18,8 +17,11 @@ interface InstanceInMemoryAttributes {
 
 export type InstanceInMemoryData = Instance & InstanceInMemoryAttributes;
 
+/**
+ * In memory instances -> used to keep track of connected socket clients and state.
+ * instance.id is the key.
+ */
 let instances: Record<string, InstanceInMemoryData> = {};
-// export default function getInstances() { return instances };
 export default instances;
 
 /**
