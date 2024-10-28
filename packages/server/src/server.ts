@@ -88,8 +88,6 @@ let io = new Server({
  */
 io.on("connection", (socket: Socket) => {
   // assignedClientSlotIndex is tied to the socket state.
-  // should do via session cookie?
-  let assignedClientSlotIndex: number | null = null;
   socket.on(
     "OSC_JOIN_REQUEST",
     async (data) => await onOscJoinRequest({ socket, data, io })
@@ -107,20 +105,21 @@ io.on("connection", (socket: Socket) => {
   socket.on(
     "OSC_CTRL_MESSAGE",
     async (data) =>
-      await onOscCtrlMessage({ socket, data, assignedClientSlotIndex, io })
+      await onOscCtrlMessage({ socket, data, io })
   );
 
   socket.on("USER_JOIN_REQUEST", async (data) => {
-    assignedClientSlotIndex = await onUserJoinRequest({
+    const assignedClientSlotIndex = await onUserJoinRequest({
       socket,
       data,
       io,
     });
+    socket.data.assignedClientSlotIndex = assignedClientSlotIndex;
   });
 
   socket.on(
     "disconnect",
-    async () => await onDisconnect({ socket, assignedClientSlotIndex, io })
+    async () => await onDisconnect({ socket, io })
   );
 
   socket.on("connect_failed", (err) => {

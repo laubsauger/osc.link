@@ -2,7 +2,8 @@ import fs from "fs";
 import path from "path";
 import { createRoomState, assignClientSlot, resetClientSlot } from "./utils";
 import { Server, Socket } from "socket.io";
-import Instance, { getInstance, InstanceInMemoryData } from "./models/Instance";
+import Instance from "./models/Instance";
+import instances, { getInstance } from "./inMemoryInstances";
 
 const roomTypes = {
   users: "users",
@@ -112,7 +113,6 @@ export async function onUserJoinRequest({
     socket,
     requestedSlotIndex
   );
-  instance.lastTriedSlotIndex = assignedClientSlotIndex;
 
   if (assignedClientSlotIndex === false) {
     console.log("Room is full;");
@@ -122,6 +122,8 @@ export async function onUserJoinRequest({
 
     return assignedClientSlotIndex;
   }
+  instance.lastTriedSlotIndex = assignedClientSlotIndex;
+
   socket.join(instance.rooms.users);
   socket.data.instanceId = instance.id; // Using 'any' to bypass TypeScript error
 
@@ -160,11 +162,9 @@ export async function onUserJoinRequest({
 
 export async function onDisconnect({
   socket,
-  assignedClientSlotIndex,
   io,
 }: {
   socket: any;
-  assignedClientSlotIndex: number | null;
   io: any;
 }): Promise<void> {
   let instance;
@@ -184,7 +184,7 @@ export async function onDisconnect({
 
   io.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
     id: socket.id,
-    client_index: assignedClientSlotIndex,
+    client_index: socket.data.assignedClientSlotIndex,
     usedSlots: newRoomState.usedSlots,
     maxSlots: instance?.settings?.slots,
   });
@@ -193,21 +193,21 @@ export async function onDisconnect({
     ...newRoomState,
     id: socket.id,
     users: newRoomState?.users?.filter(
-      (item) => item.id !== assignedClientSlotIndex
+      (item) => item.id !== socket.data.assignedClientSlotIndex
     ) ?? [],
-    client_index: assignedClientSlotIndex,
+    client_index: socket.data.assignedClientSlotIndex,
   });
 
   resetClientSlot(instance, socket);
   console.log(
-    "User " + socket.id + "(" + assignedClientSlotIndex + ") disconnected"
+    "User " + socket.id + "(" + socket.data.assignedClientSlotIndex + ") disconnected"
   );
 }
 
-function resetUsersRoom() {
+function resetUsersRoom(socket: Socket, io: Server) {
   const roomName = "users";
   // Loop through all instances
-  instances.forEach((instance) => {
+  Object.values(instances).forEach((instance) => {
     console.log(instance.rooms.users, roomName);
     // For each instance, find the room with the specified roomName
     if (instance.rooms.users === `${roomTypes.users}:${instance.id}`) {
@@ -223,7 +223,7 @@ function resetUsersRoom() {
 
           io.sockets.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
             id: socket.id,
-            client_index: assignedClientSlotIndex,
+            client_index: socket.data.assignedClientSlotIndex,
           });
         }
       });
@@ -244,6 +244,13 @@ export async function onOscHostMessage({
   socket,
   data: { data: game, room },
   io,
+}: {
+  socket: Socket,
+  data: {
+    data: any,
+    room: string,
+  },
+  io: Server,
 }) {
   const processing_start = new Date().getTime();
 
@@ -253,7 +260,7 @@ export async function onOscHostMessage({
     game.gameState.phase === "kill" &&
     game.gameState.code !== "affenpuperzenkrebs"
   ) {
-    resetUsersRoom();
+    resetUsersRoom(socket, io);
     console.error(
       "OSC_HOST_MESSAGE::userKillSwitchXYZ!!! DISCONNECTING ALL INSTANCES AND CLIENTS"
     );
@@ -266,7 +273,7 @@ export async function onOscHostMessage({
    */
   let instance;
   try {
-    const roomInstanceId = socket.room.split(":")[1];
+    const roomInstanceId = room.split(":")[1];
     instance = await getInstance(roomInstanceId);
   } catch (e) {
     console.error("OSC_HOST_MESSAGE::Invalid Instance", e);
@@ -295,18 +302,15 @@ export async function onOscHostMessage({
  * @param {Object} params - The parameters for the function.
  * @param {Object} params.socket - The socket instance.
  * @param {Object} params.data - The data received from the client.
- * @param {number} params.assignedClientSlotIndex - The index of the client slot assigned.
  * @param {Server} params.io - The Socket.IO server instance.
  */
 export async function onOscCtrlMessage({
   socket,
   data,
-  assignedClientSlotIndex,
   io,
 }: {
   socket: Socket;
   data: Record<string, any>;
-  assignedClientSlotIndex: number | null;
   io: Server;
 }) {
   console.log("onOscCtrlMessage", socket.data.instanceId);
@@ -322,7 +326,7 @@ export async function onOscCtrlMessage({
     "| Instance:",
     instance.id,
     "| Slot:",
-    assignedClientSlotIndex,
+    socket.data.assignedClientSlotIndex,
     "|",
     data
   );
@@ -334,7 +338,7 @@ export async function onOscCtrlMessage({
   // @todo: if we want to show users what others are doing in real time we'll need to broad cast to them too
   io.to(instance.rooms.control).emit("OSC_CTRL_MESSAGE", {
     ...data,
-    client_index: assignedClientSlotIndex,
+    client_index: socket.data.assignedClientSlotIndex,
     processed: new Date().getTime() - processing_start,
   });
 
@@ -346,7 +350,7 @@ export async function onOscCtrlMessage({
     io.to(instance.rooms.users).emit("USER_UPDATE", {
       id: socket.id,
       name: data.text,
-      client_index: assignedClientSlotIndex,
+      client_index: socket.data.assignedClientSlotIndex,
       processed: new Date().getTime() - processing_start,
     });
   }
