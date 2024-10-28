@@ -14,37 +14,14 @@ import instanceRoutes from "./routes/instances";
 import defineAssociations from "./models/associations";
 import { Socket, Server } from "socket.io";
 
+/**
+ * This file sets up
+ * 1. an express server for api routes,
+ * 2. a socket.io server for websocket messages to pass through.
+ */
+
 const app = express();
 const port = Number(process.env.SERVER_PORT) || 8080;
-
-const headerConfig = (req: Request, res: Response, next: NextFunction) => {
-  // allow external requests
-  // if (process.env.NODE_ENV === 'production') {
-  //   const origin = req.headers.origin;
-  //   if (crossOriginDomainsProd.indexOf(origin) > -1) {
-  //     res.append('Access-Control-Allow-Origin', origin);
-  //   }
-  // } else {
-  //   const origin = req.headers.origin;
-  //   if (crossOriginDomainsTest.indexOf(origin) > -1) {
-  //     res.append('Access-Control-Allow-Origin', origin);
-  //   }
-  // }
-
-  // Access-Control-Allow-Credentials
-  res.append("Access-Control-Allow-Credentials", "true");
-  // allow rest http verbs
-  res.append(
-    "Access-Control-Allow-Methods",
-    "GET,PUT,POST,DELETE,PATCH,OPTIONS"
-  );
-  // allow content type header
-  res.append(
-    "Access-Control-Allow-Headers",
-    "Origin, Content-Type, Accept, Authorization, X-Requested-With"
-  );
-  next();
-};
 
 const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') ?? [];
 app.use(
@@ -62,7 +39,18 @@ app.use(
     credentials: true,
   })
 );
-app.use(headerConfig);
+app.use((req: Request, res: Response, next: NextFunction) => {
+  res.append("Access-Control-Allow-Credentials", "true");
+  res.append(
+    "Access-Control-Allow-Methods",
+    "GET,PUT,POST,DELETE,PATCH,OPTIONS"
+  );
+  res.append(
+    "Access-Control-Allow-Headers",
+    "Origin, Content-Type, Accept, Authorization, X-Requested-With"
+  );
+  next();
+});
 app.use(express.json());
 app.use("/api/instances", instanceRoutes);
 
