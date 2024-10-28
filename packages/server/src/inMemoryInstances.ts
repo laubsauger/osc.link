@@ -1,9 +1,14 @@
 import { Socket } from "socket.io";
 import Instance from "./models/Instance";
 
-
-export type InstanceSlot = { slot_index: number; client: Socket | null | undefined };
-export type ConnectedClient = { id: string; client_index: number; name: string };
+/**
+ * A slot on an Instance. A mapping of slot_index to socket.io client
+ */
+export type InstanceSlot = { slot_index: number; client: Socket | undefined };
+/**
+ * Keeps track of connected clients. Not necessarily a part of a room.
+ */
+export type ConnectedClient = { id: string; name: string };
 
 interface InstanceInMemoryAttributes {
   rooms: {

@@ -10,7 +10,7 @@ export const getRandomArrayElement = (arr: any[]) => {
   return arr[Math.floor(random(1, arr.length)) - 1];
 };
 
-export type RoomState = { usedSlots: number; maxSlots?: number; users?: ConnectedClient[] };
+export type RoomState = { usedSlots: number; maxSlots?: number; connectedClients?: ConnectedClient[] };
 
 export function assignClientSlot(
   instance: InstanceInMemoryData,
@@ -87,7 +87,7 @@ export function resetClientSlot(instance: InstanceInMemoryData, client: Socket) 
 
     return {
       ...slot,
-      client: null,
+      client: undefined,
     };
   });
 }
@@ -98,6 +98,6 @@ export function createRoomState(instance: InstanceInMemoryData, clientsInRoom?: 
   return {
     usedSlots: numClients,
     maxSlots: instance?.settings?.slots,
-    users: instance.connectedClients,
+    connectedClients: instance.connectedClients,
   };
 }
