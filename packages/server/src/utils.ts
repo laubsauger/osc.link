@@ -1,11 +1,24 @@
-// @ts-nocheck
-// TODO: Update to TypeScript. 
-const getRandomArrayElement = (arr: []) => {
-  return arr[Math.floor(random(1, arr.length))-1];
+import { Socket } from "socket.io";
+import { DefaultEventsMap } from "socket.io/dist/typed-events";
+import { InstanceInMemoryData, InstanceUser, UserSlot } from "./inMemoryInstances";
+
+function random(mn: number, mx: number) {
+  return Math.random() * (mx - mn) + mn;
 }
 
-function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
-    console.log('requested slot index')
+export const getRandomArrayElement = (arr: any[]) => {
+  return arr[Math.floor(random(1, arr.length)) - 1];
+};
+
+export type RoomState = { usedSlots: number; maxSlots?: number; users?: InstanceUser[] };
+
+export function assignClientSlot(
+  instance: InstanceInMemoryData,
+  roomState: RoomState,
+  newClient: Socket<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>,
+  requestedSlotIndex: number | null
+): number | false {
+  console.log("requested slot index");
   // override requested slot and assign new client id to it
   if (requestedSlotIndex) {
     instance.userSlots = instance.userSlots.map((slot) => {
@@ -30,7 +43,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
     return requestedSlotIndex;
   }
 
-  if (roomState.usedSlots + 1 > roomState.maxSlots) {
+  if (roomState.usedSlots + 1 > (roomState?.maxSlots ?? 0)) {
     console.log("no available slot for new client", newClient.id);
     return false;
   }
@@ -47,7 +60,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
   // console.log({freeSlotsExcludingLastTried})
 
   // pick random free slot
-  const nextFreeSlotIndex = instance.settings.randomPick
+  const nextFreeSlotIndex: number = instance?.settings?.randomPick
     ? getRandomArrayElement(freeSlotsExcludingLastTried).slot_index
     : freeSlotsExcludingLastTried?.[0]?.slot_index ?? 0;
 
@@ -66,7 +79,7 @@ function assignClientSlot(instance, roomState, newClient, requestedSlotIndex) {
   return nextFreeSlotIndex;
 }
 
-function resetClientSlot(instance, client) {
+export function resetClientSlot(instance: InstanceInMemoryData, client: Socket) {
   instance.userSlots = instance.userSlots.map((slot) => {
     if (slot.client && slot.client.id !== client.id) {
       return slot;
@@ -79,14 +92,12 @@ function resetClientSlot(instance, client) {
   });
 }
 
-function createRoomState(instance, clientsInRoom) {
+export function createRoomState(instance: InstanceInMemoryData, clientsInRoom?: Set<string>): RoomState {
   const numClients = clientsInRoom ? clientsInRoom.size : 0;
 
   return {
     usedSlots: numClients,
-    maxSlots: instance.settings.slots,
+    maxSlots: instance?.settings?.slots,
     users: instance.users,
   };
 }
-
-module.exports = { assignClientSlot, resetClientSlot, createRoomState };

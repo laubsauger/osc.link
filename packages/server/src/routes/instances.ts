@@ -71,7 +71,6 @@ router.get("/:id", async (req, res) => {
 });
 
 // Update an instance by ID
-// todo: ensure auth
 router.put("/:id", ClerkExpressRequireAuth({}), async (req, res) => {
   try {
     const customReq = req as CustomRequest;

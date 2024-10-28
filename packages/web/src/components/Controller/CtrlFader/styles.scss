@@ -30,6 +30,9 @@
   &.CtrlFader-black {
     border-color: #333;
 
+    //&:active {
+    outline-color: #000000;
+    //}
     & :first-child {
       background-color: #33333333;
     }
@@ -37,15 +40,13 @@
     & > :first-child > :first-child {
       background-color: #33333388;
     }
-
-    //&:active {
-      outline-color: #000000;
-    //}
   }
 
   &.CtrlFader-red {
     border-color: #ff444433;
-
+    //&:active {
+    outline-color: #ff4444;
+    //}
     & :first-child {
       background-color: #ff444433;
     }
@@ -53,14 +54,13 @@
     & > :first-child > :first-child {
       background-color: #ff444488;
     }
-
-    //&:active {
-      outline-color: #ff4444;
-    //}
   }
 
   &.CtrlFader-green {
     border-color: #44844422;
+    //&:active {
+    outline-color: #448444;
+    //}
 
     & :first-child {
       background-color: #44844433;
@@ -69,14 +69,13 @@
     & > :first-child > :first-child {
       background-color: #44844488;
     }
-
-    //&:active {
-      outline-color: #448444;
-    //}
   }
 
   &.CtrlFader-blue {
     border-color: #3333ff22;
+    //&:active {
+    outline-color: #3333ff;
+    //}
 
     & :first-child {
       background-color: #3333ff33;
@@ -85,9 +84,5 @@
     & > :first-child > :first-child {
       background-color: #3333ff88;
     }
-
-    //&:active {
-      outline-color: #3333ff;
-    //}
   }
 }

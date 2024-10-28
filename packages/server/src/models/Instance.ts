@@ -1,13 +1,17 @@
-import { DataTypes, Model, Optional } from 'sequelize';
-import { v4 as uuidv4 } from 'uuid';
-import sequelize from '../database';
-
+import { DataTypes, Model, Optional } from "sequelize";
+import { v4 as uuidv4 } from "uuid";
+import sequelize from "../database";
+import { Socket } from "socket.io";
 
 class Instance extends Model {
   public id!: number;
   public name!: string;
   public description?: string;
-  public settings?: object;
+  public settings?: {
+    slots: number;
+    randomPick?: boolean;
+    [key: string]: any;
+  };
   public userId!: string;
 
   public readonly createdAt!: Date;
@@ -25,24 +29,24 @@ Instance.init(
     },
     name: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
     },
     description: {
       type: DataTypes.STRING,
-      allowNull: true
+      allowNull: true,
     },
     settings: {
       type: DataTypes.JSON,
-      allowNull: true
+      allowNull: true,
     },
     userId: {
       type: DataTypes.STRING,
-      allowNull: false
-    }
+      allowNull: false,
+    },
   },
   {
     sequelize,
-    modelName: 'Instance'
+    modelName: "Instance",
   }
 );
 
