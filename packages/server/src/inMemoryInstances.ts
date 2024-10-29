@@ -1,24 +1,32 @@
 import { Socket } from "socket.io";
 import Instance from "./models/Instance";
 
-export type UserSlot = { slot_index: number; client: Socket | null | undefined };
-export type InstanceUser = { id: string; client_index: number; name: string };
+/**
+ * A slot on an Instance. A mapping of slot_index to socket.io client
+ */
+export type InstanceSlot = { slot_index: number; client: Socket | undefined };
+/**
+ * Keeps track of connected clients. Not necessarily a part of a room.
+ */
+export type ConnectedClient = { id: string; name: string };
 
 interface InstanceInMemoryAttributes {
   rooms: {
     users: string;
     control: string;
   };
-  // todo: define difference between userSlots and users.. why???
-  userSlots: UserSlot[];
-  users: InstanceUser[];
+  instanceSlots: InstanceSlot[];
+  connectedClients: ConnectedClient[];
   lastTriedSlotIndex: number; // used to keep track of user slots - sequentially ordered.
 }
 
 export type InstanceInMemoryData = Instance & InstanceInMemoryAttributes;
 
+/**
+ * In memory instances -> used to keep track of connected socket clients and state.
+ * instance.id is the key.
+ */
 let instances: Record<string, InstanceInMemoryData> = {};
-// export default function getInstances() { return instances };
 export default instances;
 
 /**
@@ -38,10 +46,10 @@ export async function getInstance(
       throw new Error(`Instance with ID ${instanceId} not found`);
     }
 
-    let userSlots: UserSlot[] = [];
+    let instanceSlots: InstanceSlot[] = [];
     const slots = instance?.settings?.slots || 0;
     for (let i = 0; i < slots; i++) {
-      userSlots.push({ slot_index: i + 1, client: undefined });
+      instanceSlots.push({ slot_index: i + 1, client: undefined });
     }
 
     instances[instanceId] = Object.assign(instance, {
@@ -49,8 +57,8 @@ export async function getInstance(
         users: `users:${instance.id}`,
         control: `control:${instance.id}`,
       },
-      userSlots: userSlots,
-      users: [] as InstanceUser[],
+      instanceSlots: instanceSlots,
+      connectedClients: [] as ConnectedClient[],
       lastTriedSlotIndex: 0,
     }) as InstanceInMemoryData;
   }

@@ -136,10 +136,12 @@ export async function onUserJoinRequest({
     userSlot: assignedClientSlotIndex,
   });
 
-  if (!instance.users.filter((user) => user.id === socket.id).length) {
-    instance.users.push({
+  /**
+   * If client doesn't already exist in connectedClients
+   */
+  if (!instance.connectedClients.filter((client) => client.id === socket.id).length) {
+    instance.connectedClients.push({
       id: socket.id,
-      client_index: assignedClientSlotIndex,
       name: "",
     });
   }
@@ -178,7 +180,7 @@ export async function onDisconnect({
     return;
   }
 
-  instance.users = instance.users.filter((item) => item.id !== socket.id);
+  instance.connectedClients = instance.connectedClients.filter((item) => item.id !== socket.id);
 
   const newRoomState = createRoomState(
     instance,
@@ -195,8 +197,8 @@ export async function onDisconnect({
   io.to(instance.rooms.users).emit("USER_LEFT", {
     ...newRoomState,
     id: socket.id,
-    users: newRoomState?.users?.filter(
-      (item) => item.id !== socket.data.assignedClientSlotIndex
+    users: newRoomState?.connectedClients?.filter(
+      (client) => client.id !== socket.data.assignedClientSlotIndex
     ) ?? [],
     client_index: socket.data.assignedClientSlotIndex,
   });
@@ -215,14 +217,14 @@ function resetUsersRoom(socket: Socket, io: Server) {
     // For each instance, find the room with the specified roomName
     if (instance.rooms.users === `${roomTypes.users}:${instance.id}`) {
       // Loop over the instance's userSlots
-      instance.userSlots.forEach((slot) => {
+      instance.instanceSlots.forEach((slot) => {
         // If the slot has a connected client
         if (slot.client) {
           console.log("Disconnecting user", slot.client.id);
           // Disconnect the client
           slot.client.disconnect(true);
           // Clear the client info from the slot
-          slot.client = null;
+          slot.client = undefined;
 
           io.sockets.to(instance.rooms.control).emit("OSC_CTRL_USER_LEFT", {
             id: socket.id,
@@ -231,7 +233,7 @@ function resetUsersRoom(socket: Socket, io: Server) {
         }
       });
       // Clear users data
-      instance.users = [];
+      instance.connectedClients = [];
     }
   });
 }
@@ -344,8 +346,8 @@ export async function onOscCtrlMessage({
   });
 
   if (data && data.message && data.message === "userName") {
-    instance.users = instance.users.map((user) =>
-      user.id === socket.id ? { ...user, name: data.text } : user
+    instance.connectedClients = instance.connectedClients.map((client) =>
+      client.id === socket.id ? { ...client, name: data.text } : client
     );
 
     io.to(instance.rooms.users).emit("USER_UPDATE", {
